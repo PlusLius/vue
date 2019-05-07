@@ -8,6 +8,7 @@ Runtime Only
 Runtime + Compiler
 我们如果没有对代码做预编译，但又使用了 Vue 的 template 属性并传入一个字符串，则需要在客户端编译模板，如下所示：
 
+```js
 // 需要编译器的版本
 new Vue({
   template: '<div>{{ hi }}</div>'
@@ -19,3 +20,4 @@ new Vue({
     return h('div', this.hi)
   }
 })
+```
