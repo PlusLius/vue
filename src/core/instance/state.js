@@ -304,6 +304,7 @@ function createWatcher (
   if (typeof handler === 'string') {
     handler = vm[handler]
   }
+  //找到vm下的处理方法在进行watch
   return vm.$watch(expOrFn, handler, options)
 }
 
@@ -327,27 +328,44 @@ export function stateMixin (Vue: Class<Component>) {
       warn(`$props is readonly.`, this)
     }
   }
+  //挂载$data,$props为响应属性
   Object.defineProperty(Vue.prototype, '$data', dataDef)
   Object.defineProperty(Vue.prototype, '$props', propsDef)
-
+  //挂载$set,$delete 为Observer中的set和del
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
-
+  //挂载$watch，用来创建watcher，给开发者使用的
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,
     options?: Object
   ): Function {
     const vm: Component = this
+    //如果传入的是普通对象，先找到对象的表达式在往下执行
     if (isPlainObject(cb)) {
       return createWatcher(vm, expOrFn, cb, options)
     }
+    // vm.$watch('someObject', callback, {
+    //   deep: true
+    // })
+    // vm.someObject.nestedValue = 123
+    // // callback is fired
     options = options || {}
     options.user = true
+    //初始化watcher对象
+    //观察 Vue 实例变化的一个表达式或计算属性函数。
+    //回调函数得到的参数为新值和旧值。
+    //表达式只接受监督的键路径。对于更复杂的表达式，
+    //用一个函数取代。
     const watcher = new Watcher(vm, expOrFn, cb, options)
     if (options.immediate) {
+      // vm.$watch('a', callback, {
+      //   immediate: true
+      // })
+      // 立即以 `a` 的当前值触发回调
       cb.call(vm, watcher.value)
     }
+    //返回卸载方法
     return function unwatchFn () {
       watcher.teardown()
     }

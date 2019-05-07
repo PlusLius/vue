@@ -45,9 +45,18 @@ export function updateComponentListeners (
 
 export function eventsMixin (Vue: Class<Component>) {
   const hookRE = /^hook:/
+  //监听当前实例上的自定义事件。事件可以由vm.$emit触发。回调函数会接收所有传入事件触发函数的额外参数。
+  /** 
+   * vm.$on('test', function (msg) {
+        console.log(msg)
+      })
+      vm.$emit('test', 'hi')
+    // => "hi"
+  */
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     const vm: Component = this
     if (Array.isArray(event)) {
+      //如果是数组一个一个绑定
       for (let i = 0, l = event.length; i < l; i++) {
         this.$on(event[i], fn)
       }
@@ -65,7 +74,9 @@ export function eventsMixin (Vue: Class<Component>) {
   Vue.prototype.$once = function (event: string, fn: Function): Component {
     const vm: Component = this
     function on () {
+      //移除事件
       vm.$off(event, on)
+      //执行$once给定的回调
       fn.apply(vm, arguments)
     }
     on.fn = fn

@@ -220,3 +220,261 @@ vm._props = {}
 // initProvide()    src/core/instance/inject.js
 vm._provided
 ```
+## vm.$watch
+
+```js
+
+// 键路径
+vm.$watch('a.b.c', function (newVal, oldVal) {
+  // 做点什么
+})
+
+// 函数
+vm.$watch(
+  function () {
+    // 表达式 `this.a + this.b` 每次得出一个不同的结果时
+    // 处理函数都会被调用。
+    // 这就像监听一个未被定义的计算属性
+    return this.a + this.b
+  },
+  function (newVal, oldVal) {
+    // 做点什么
+  }
+)
+
+var unwatch = vm.$watch('a', cb)
+// 之后取消观察
+unwatch()
+
+vm.$watch('someObject', callback, {
+  deep: true
+})
+vm.someObject.nestedValue = 123
+// callback is fired
+
+vm.$watch('a', callback, {
+  immediate: true
+})
+// 立即以 `a` 的当前值触发回调
+```
+
+```js
+//instance/state.js
+function createWatcher (
+  vm: Component,
+  expOrFn: string | Function,
+  handler: any,
+  options?: Object
+) {
+  if (isPlainObject(handler)) {
+    options = handler
+    handler = handler.handler
+  }
+  if (typeof handler === 'string') {
+    handler = vm[handler]
+  }
+  //找到表达式往下执行
+  return vm.$watch(expOrFn, handler, options)
+}
+
+//挂载$watch，用来创建watcher，给开发者使用的
+  Vue.prototype.$watch = function (
+    expOrFn: string | Function,
+    cb: any,
+    options?: Object
+  ): Function {
+    const vm: Component = this
+     //如果传入的是普通对象，先找到对象的表达式在往下执行
+    if (isPlainObject(cb)) {
+      return createWatcher(vm, expOrFn, cb, options)
+    }
+    // vm.$watch('someObject', callback, {
+    //   deep: true
+    // })
+    // vm.someObject.nestedValue = 123
+    // // callback is fired
+    options = options || {}
+    options.user = true
+    //初始化watcher对象
+    //观察 Vue 实例变化的一个表达式或计算属性函数。
+    //回调函数得到的参数为新值和旧值。
+    //表达式只接受监督的键路径。对于更复杂的表达式，
+    //用一个函数取代。
+    const watcher = new Watcher(vm, expOrFn, cb, options)
+    if (options.immediate) {
+      // vm.$watch('a', callback, {
+      //   immediate: true
+      // })
+      // 立即以 `a` 的当前值触发回调
+      cb.call(vm, watcher.value)
+    }
+    //返回卸载方法
+    return function unwatchFn () {
+      watcher.teardown()
+    }
+  }
+```
+
+## vm事件
+
+```js
+//instance/events.js
+//挂载事件
+Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
+Vue.prototype.$once = function (event: string, fn: Function): Component {
+Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
+Vue.prototype.$emit = function (event: string): Component {
+//钩子检测
+const hookRE = /^hook:/
+
+```
+
+```js
+ const hookRE = /^hook:/
+  //监听当前实例上的自定义事件。事件可以由vm.$emit触发。回调函数会接收所有传入事件触发函数的额外参数。
+  /** 
+   * vm.$on('test', function (msg) {
+        console.log(msg)
+      })
+      vm.$emit('test', 'hi')
+    // => "hi"
+  */
+  Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
+    const vm: Component = this
+    if (Array.isArray(event)) {
+      //如果是数组一个一个绑定
+      for (let i = 0, l = event.length; i < l; i++) {
+        this.$on(event[i], fn)
+      }
+    } else {
+      (vm._events[event] || (vm._events[event] = [])).push(fn)
+      // optimize hook:event cost by using a boolean flag marked at registration
+      // instead of a hash lookup
+      if (hookRE.test(event)) {
+        vm._hasHookEvent = true
+      }
+    }
+    return vm
+  }
+
+  Vue.prototype.$once = function (event: string, fn: Function): Component {
+    const vm: Component = this
+    function on () {
+      //移除事件
+      vm.$off(event, on)
+      //执行$once给定的回调
+      fn.apply(vm, arguments)
+    }
+    on.fn = fn
+    vm.$on(event, on)
+    return vm
+  }
+
+  Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
+    const vm: Component = this
+    // all
+    if (!arguments.length) {
+      vm._events = Object.create(null)
+      return vm
+    }
+    // array of events
+    if (Array.isArray(event)) {
+      for (let i = 0, l = event.length; i < l; i++) {
+        this.$off(event[i], fn)
+      }
+      return vm
+    }
+    // specific event
+    const cbs = vm._events[event]
+    if (!cbs) {
+      return vm
+    }
+    if (!fn) {
+      vm._events[event] = null
+      return vm
+    }
+    if (fn) {
+      // specific handler
+      let cb
+      let i = cbs.length
+      while (i--) {
+        cb = cbs[i]
+        if (cb === fn || cb.fn === fn) {
+          cbs.splice(i, 1)
+          break
+        }
+      }
+    }
+    return vm
+  }
+
+  Vue.prototype.$emit = function (event: string): Component {
+    const vm: Component = this
+    if (process.env.NODE_ENV !== 'production') {
+      const lowerCaseEvent = event.toLowerCase()
+      if (lowerCaseEvent !== event && vm._events[lowerCaseEvent]) {
+        tip(
+          `Event "${lowerCaseEvent}" is emitted in component ` +
+          `${formatComponentName(vm)} but the handler is registered for "${event}". ` +
+          `Note that HTML attributes are case-insensitive and you cannot use ` +
+          `v-on to listen to camelCase events when using in-DOM templates. ` +
+          `You should probably use "${hyphenate(event)}" instead of "${event}".`
+        )
+      }
+    }
+    let cbs = vm._events[event]
+    if (cbs) {
+      cbs = cbs.length > 1 ? toArray(cbs) : cbs
+      const args = toArray(arguments, 1)
+      for (let i = 0, l = cbs.length; i < l; i++) {
+        try {
+          cbs[i].apply(vm, args)
+        } catch (e) {
+          handleError(e, vm, `event handler for "${event}"`)
+        }
+      }
+    }
+    return vm
+  }
+```
+
+## lifecycle
+
+```js
+//instance/lifecycle
+  Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
+  Vue.prototype.$forceUpdate = function () {
+  Vue.prototype.$destroy = function () {
+```
+
+## render
+
+```js
+//instance/render
+  installRenderHelpers(Vue.prototype)
+  Vue.prototype.$nextTick = function (fn: Function) {
+  Vue.prototype._render = function (): VNode {
+
+```
+
+```js
+//instance/render-helpers
+function installRenderHelpers (target: any) {
+  target._o = markOnce
+  target._n = toNumber
+  target._s = toString
+  target._l = renderList
+  target._t = renderSlot
+  target._q = looseEqual
+  target._i = looseIndexOf
+  target._m = renderStatic
+  target._f = resolveFilter
+  target._k = checkKeyCodes
+  target._b = bindObjectProps
+  target._v = createTextVNode
+  target._e = createEmptyVNode
+  target._u = resolveScopedSlots
+  target._g = bindObjectListeners
+}
+
+```
