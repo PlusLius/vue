@@ -36,7 +36,34 @@ export function initMixin (Vue: Class<Component>) {
       // internal component options needs special treatment.
       initInternalComponent(vm, options)
     } else {
+      /**
+       * vm.$options = mergeOptions(
+            // resolveConstructorOptions(vm.constructor)
+            {
+              components: {
+                KeepAlive
+                Transition,
+                TransitionGroup
+              },
+              directives:{
+                model,
+                show
+              },
+              filters: Object.create(null),
+              _base: Vue
+            },
+            // options || {}
+            {
+              el: '#app',
+              data: {
+                test: 1
+              }
+            },
+            vm
+          )
+       */
       vm.$options = mergeOptions(
+        //解析vm.contructor.options
         resolveConstructorOptions(vm.constructor),
         options || {},
         vm
@@ -101,8 +128,11 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 }
 
 export function resolveConstructorOptions (Ctor: Class<Component>) {
+  //拿到optisons
   let options = Ctor.options
+  //判断是不是子类
   if (Ctor.super) {
+    //拿到父类options
     const superOptions = resolveConstructorOptions(Ctor.super)
     const cachedSuperOptions = Ctor.superOptions
     if (superOptions !== cachedSuperOptions) {
@@ -121,6 +151,7 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
       }
     }
   }
+  //返回Vue.options
   return options
 }
 

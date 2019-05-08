@@ -700,3 +700,231 @@ Vue.compile = compileToFunctions
 export default Vue
 
 ```
+
+## util
+
+### perf.js
+
+```js
+mark('for-start')
+for (let i = 0; i < 100; i++) {
+    console.log(i)
+}
+mark('for-end')
+
+measure('for-measure', 'for-start', 'for-end')
+```
+
+```js
+//perf.js
+import { inBrowser } from './env'
+
+export let mark
+export let measure
+
+if (process.env.NODE_ENV !== 'production') {
+  /**
+   * 如果在浏览器环境，那么 perf 的值就是 window.performance，否则为 false，然后做了一系列判断，目的是确定 performance 的接口可用，如果都可用，那么将初始化 mark 和 measure 变量。
+   */
+  const perf = inBrowser && window.performance
+  /* istanbul ignore if */
+  if (
+    perf &&
+    perf.mark &&
+    perf.measure &&
+    perf.clearMarks &&
+    perf.clearMeasures
+  ) {
+    //通过 performance.mark() 方法打一个标记。
+    mark = tag => perf.mark(tag)
+    //measure 方法触发标记
+    measure = (name, startTag, endTag) => {
+      perf.measure(name, startTag, endTag)
+      perf.clearMarks(startTag)
+      perf.clearMarks(endTag)
+      perf.clearMeasures(name)
+    }
+  }
+}
+
+```
+
+### env
+
+```js
+
+/* @flow */
+
+// can we use __proto__?
+export const hasProto = '__proto__' in {}
+
+// Browser environment sniffing
+export const inBrowser = typeof window !== 'undefined'
+export const inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform
+export const weexPlatform = inWeex && WXEnvironment.platform.toLowerCase()
+export const UA = inBrowser && window.navigator.userAgent.toLowerCase()
+export const isIE = UA && /msie|trident/.test(UA)
+export const isIE9 = UA && UA.indexOf('msie 9.0') > 0
+export const isEdge = UA && UA.indexOf('edge/') > 0
+export const isAndroid = (UA && UA.indexOf('android') > 0) || (weexPlatform === 'android')
+export const isIOS = (UA && /iphone|ipad|ipod|ios/.test(UA)) || (weexPlatform === 'ios')
+export const isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge
+
+// Firefox has a "watch" function on Object.prototype...
+export const nativeWatch = ({}).watch
+
+export let supportsPassive = false
+if (inBrowser) {
+  try {
+    const opts = {}
+    Object.defineProperty(opts, 'passive', ({
+      get () {
+        /* istanbul ignore next */
+        supportsPassive = true
+      }
+    }: Object)) // https://github.com/facebook/flow/issues/285
+    window.addEventListener('test-passive', null, opts)
+  } catch (e) {}
+}
+
+// this needs to be lazy-evaled because vue may be required before
+// vue-server-renderer can set VUE_ENV
+let _isServer
+export const isServerRendering = () => {
+  if (_isServer === undefined) {
+    /* istanbul ignore if */
+    if (!inBrowser && !inWeex && typeof global !== 'undefined') {
+      // detect presence of vue-server-renderer and avoid
+      // Webpack shimming the process
+      _isServer = global['process'].env.VUE_ENV === 'server'
+    } else {
+      _isServer = false
+    }
+  }
+  return _isServer
+}
+
+// detect devtools
+export const devtools = inBrowser && window.__VUE_DEVTOOLS_GLOBAL_HOOK__
+
+/* istanbul ignore next */
+export function isNative (Ctor: any): boolean {
+  return typeof Ctor === 'function' && /native code/.test(Ctor.toString())
+}
+
+export const hasSymbol =
+  typeof Symbol !== 'undefined' && isNative(Symbol) &&
+  typeof Reflect !== 'undefined' && isNative(Reflect.ownKeys)
+
+let _Set
+/* istanbul ignore if */ // $flow-disable-line
+if (typeof Set !== 'undefined' && isNative(Set)) {
+  // use native Set when available.
+  _Set = Set
+} else {
+  // a non-standard Set polyfill that only works with primitive keys.
+  _Set = class Set implements SimpleSet {
+    set: Object;
+    constructor () {
+      this.set = Object.create(null)
+    }
+    has (key: string | number) {
+      return this.set[key] === true
+    }
+    add (key: string | number) {
+      this.set[key] = true
+    }
+    clear () {
+      this.set = Object.create(null)
+    }
+  }
+}
+
+interface SimpleSet {
+  has(key: string | number): boolean;
+  add(key: string | number): mixed;
+  clear(): void;
+}
+
+export { _Set }
+export type { SimpleSet }
+
+```
+
+## shared/util
+
+```js
+/**
+ * Camelize a hyphen-delimited string.
+连字符转驼峰
+ */
+const camelizeRE = /-(\w)/g
+export const camelize = cached((str: string): string => {
+  return str.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : '')
+})
+
+/**
+ * Get the raw type string of a value e.g. [object Object]
+ 获取原生string类型
+ */
+const _toString = Object.prototype.toString
+
+export function toRawType (value: any): string {
+  return _toString.call(value).slice(8, -1)
+}
+
+/**
+ * Check whether the object has the property.
+ 检查对象自己是否有这个属性
+ */
+const hasOwnProperty = Object.prototype.hasOwnProperty
+export function hasOwn (obj: Object | Array<*>, key: string): boolean {
+  return hasOwnProperty.call(obj, key)
+}
+
+/**
+ * Mix properties into target object.
+ 混入对象
+ */
+export function extend (to: Object, _from: ?Object): Object {
+  for (const key in _from) {
+    to[key] = _from[key]
+  }
+  return to
+}
+
+/**
+ * Check if a tag is a built-in tag.
+  检查是否是内置tag
+ */
+export const isBuiltInTag = makeMap('slot,component', true)
+
+/**
+ * Strict object type check. Only returns true
+ * for plain JavaScript objects.
+ 判断给定变量是否是纯对象。
+ */
+export function isPlainObject (obj: any): boolean {
+  return _toString.call(obj) === '[object Object]'
+}
+
+
+/**
+ * Make a map and return a function for checking if a key
+ * is in that map.
+ //创建一个字典，用来检查输入的key是否存在
+ */
+export function makeMap (
+  str: string,
+  expectsLowerCase?: boolean
+): (key: string) => true | void {
+  const map = Object.create(null)
+  const list: Array<string> = str.split(',')
+  for (let i = 0; i < list.length; i++) {
+    map[list[i]] = true
+  }
+  return expectsLowerCase
+    ? val => map[val.toLowerCase()]
+    : val => map[val]
+}
+```

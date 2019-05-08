@@ -246,12 +246,13 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 /**
  * Validate component names
  */
+//检查组件的命名合法性
 function checkComponents (options: Object) {
   for (const key in options.components) {
     validateComponentName(key)
   }
 }
-
+//真正检测组件命名合法性方法
 export function validateComponentName (name: string) {
   if (!/^[a-zA-Z][\w-]*$/.test(name)) {
     warn(
@@ -272,6 +273,20 @@ export function validateComponentName (name: string) {
  * Ensure all props option syntax are normalized into the
  * Object-based format.
  */
+/**
+ * const ChildComponent = {
+      props: ['someData']
+    }
+
+    const ChildComponent = {
+      props: {
+        someData: {
+          type: Number,
+          default: 0
+        }
+      }
+}
+ */
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
   if (!props) return
@@ -291,6 +306,7 @@ function normalizeProps (options: Object, vm: ?Component) {
   } else if (isPlainObject(props)) {
     for (const key in props) {
       val = props[key]
+      //连字符转驼峰
       name = camelize(key)
       res[name] = isPlainObject(val)
         ? val
@@ -303,6 +319,7 @@ function normalizeProps (options: Object, vm: ?Component) {
       vm
     )
   }
+  //都格式化为{}形式
   options.props = res
 }
 
@@ -374,7 +391,7 @@ export function mergeOptions (
   if (typeof child === 'function') {
     child = child.options
   }
-
+  //规范化
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
