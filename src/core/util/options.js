@@ -326,6 +326,19 @@ function normalizeProps (options: Object, vm: ?Component) {
 /**
  * Normalize all injections into Object-based format
  */
+/*
+  // 子组件
+const ChildComponent = {
+  template: '<div>child component</div>',
+  created: function () {
+    console.log(this.d)
+  },
+  // 对象的语法类似于允许我们为注入的数据声明一个别名
+  inject: {
+    d: 'data'
+  }
+}
+*/
 function normalizeInject (options: Object, vm: ?Component) {
   const inject = options.inject
   if (!inject) return
@@ -352,6 +365,25 @@ function normalizeInject (options: Object, vm: ?Component) {
 
 /**
  * Normalize raw function directives into object format.
+ */
+/**
+ * var vm = new Vue({
+  el: '#app',
+  data: {
+    test: 1
+  },
+  // 注册两个局部指令
+  directives: {
+    test1: {
+      bind: function () {
+        console.log('v-test1')
+      }
+    },
+    test2: function () {
+      console.log('v-test2')
+    }
+  }
+})
  */
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
