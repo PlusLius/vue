@@ -2,6 +2,7 @@
 
 //vue core代码
 import Vue from 'core/index'
+//默认配置
 import config from 'core/config'
 import { extend, noop } from 'shared/util'
 import { mountComponent } from 'core/instance/lifecycle'
@@ -21,6 +22,7 @@ import platformDirectives from './directives/index'
 import platformComponents from './components/index'
 
 // install platform specific utils
+//覆盖默认导出的对象
 Vue.config.mustUseProp = mustUseProp
 Vue.config.isReservedTag = isReservedTag
 Vue.config.isReservedAttr = isReservedAttr
@@ -28,10 +30,27 @@ Vue.config.getTagNamespace = getTagNamespace
 Vue.config.isUnknownElement = isUnknownElement
 
 // install platform runtime directives & components
+// 将平台相关指令混入到vue.options中
+/**
+ * Vue.options = {
+    components: {
+      KeepAlive,
+      Transition,
+      TransitionGroup
+    },
+    directives: {
+      model,
+      show
+    },
+    filters: Object.create(null),
+    _base: Vue
+  }
+ */
 extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
 
 // install platform patch function
+// 虚拟dom进行patch比较
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
