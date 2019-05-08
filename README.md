@@ -478,3 +478,225 @@ function installRenderHelpers (target: any) {
 }
 
 ```
+
+## globalAPI
+
+```js
+/* @flow */
+
+import config from '../config'
+import { initUse } from './use'
+import { initMixin } from './mixin'
+import { initExtend } from './extend'
+import { initAssetRegisters } from './assets'
+import { set, del } from '../observer/index'
+import { ASSET_TYPES } from 'shared/constants'
+import builtInComponents from '../components/index'
+
+import {
+  warn,
+  extend,
+  nextTick,
+  mergeOptions,
+  defineReactive
+} from '../util/index'
+
+//初始化Vue实例的全局方法
+export function initGlobalAPI (Vue: GlobalAPI) {
+  // config
+  const configDef = {}
+  configDef.get = () => config
+  if (process.env.NODE_ENV !== 'production') {
+    configDef.set = () => {
+      warn(
+        'Do not replace the Vue.config object, set individual fields instead.'
+      )
+    }
+  }
+  //添加config属性
+  Object.defineProperty(Vue, 'config', configDef)
+
+  // exposed util methods.
+  // NOTE: these are not considered part of the public API - avoid relying on
+  // them unless you are aware of the risk.
+  //提供了一些util方法
+  Vue.util = {
+    warn,
+    extend,
+    mergeOptions,
+    defineReactive
+  }
+
+  Vue.set = set
+  Vue.delete = del
+  Vue.nextTick = nextTick
+
+  Vue.options = Object.create(null)
+  /**
+   * export const ASSET_TYPES = [
+        'component',
+        'directive',
+        'filter'
+      ]
+   */
+  ASSET_TYPES.forEach(type => {
+    Vue.options[type + 's'] = Object.create(null)
+  })
+
+  // this is used to identify the "base" constructor to extend all plain-object
+  // components with in Weex's multi-instance scenarios.
+  /**
+   * 
+      Vue.options = {
+        components: Object.create(null),
+        directives: Object.create(null),
+        filters: Object.create(null),
+        _base: Vue
+      }
+   */
+  Vue.options._base = Vue
+  /**
+   * Vue.options = {
+        components: {
+          KeepAlive
+        },
+        directives: Object.create(null),
+        filters: Object.create(null),
+        _base: Vue
+     }
+   */
+  extend(Vue.options.components, builtInComponents)
+  
+  //Vue.use,Vue.mixin,Vue.Extend,Vue[assert]
+  initUse(Vue)
+  initMixin(Vue)
+  initExtend(Vue)
+  initAssetRegisters(Vue)
+}
+
+
+```
+
+# 跨平台内置组件和指令
+
+
+## web/runtime/vue
+
+```js
+/* @flow */
+
+//vue core代码
+import Vue from 'core/index'
+//默认配置
+import config from 'core/config'
+import { extend, noop } from 'shared/util'
+import { mountComponent } from 'core/instance/lifecycle'
+import { devtools, inBrowser, isChrome } from 'core/util/index'
+
+import {
+  query,
+  mustUseProp,
+  isReservedTag,
+  isReservedAttr,
+  getTagNamespace,
+  isUnknownElement
+} from 'web/util/index'
+
+import { patch } from './patch'
+import platformDirectives from './directives/index'
+import platformComponents from './components/index'
+
+// install platform specific utils
+//覆盖默认导出的对象
+Vue.config.mustUseProp = mustUseProp
+Vue.config.isReservedTag = isReservedTag
+Vue.config.isReservedAttr = isReservedAttr
+Vue.config.getTagNamespace = getTagNamespace
+Vue.config.isUnknownElement = isUnknownElement
+
+// install platform runtime directives & components
+// 将平台相关指令混入到vue.options中
+/**
+ * Vue.options = {
+    components: {
+      KeepAlive,
+      Transition,
+      TransitionGroup
+    },
+    directives: {
+      model,
+      show
+    },
+    filters: Object.create(null),
+    _base: Vue
+  }
+ */
+extend(Vue.options.directives, platformDirectives)
+extend(Vue.options.components, platformComponents)
+
+// install platform patch function
+// 虚拟dom进行patch比较
+Vue.prototype.__patch__ = inBrowser ? patch : noop
+
+// public mount method
+Vue.prototype.$mount = function (
+  el?: string | Element,
+  hydrating?: boolean
+): Component {
+  el = el && inBrowser ? query(el) : undefined
+  //$mount调用mountComponent进行挂载
+  return mountComponent(this, el, hydrating)
+}
+
+// devtools global hook
+/* istanbul ignore next */
+if (inBrowser) {
+  setTimeout(() => {
+    if (config.devtools) {
+      if (devtools) {
+        devtools.emit('init', Vue)
+      } else if (
+        process.env.NODE_ENV !== 'production' &&
+        process.env.NODE_ENV !== 'test' &&
+        isChrome
+      ) {
+        console[console.info ? 'info' : 'log'](
+          'Download the Vue Devtools extension for a better development experience:\n' +
+          'https://github.com/vuejs/vue-devtools'
+        )
+      }
+    }
+    if (process.env.NODE_ENV !== 'production' &&
+      process.env.NODE_ENV !== 'test' &&
+      config.productionTip !== false &&
+      typeof console !== 'undefined'
+    ) {
+      console[console.info ? 'info' : 'log'](
+        `You are running Vue in development mode.\n` +
+        `Make sure to turn on production mode when deploying for production.\n` +
+        `See more tips at https://vuejs.org/guide/deployment.html`
+      )
+    }
+  }, 0)
+}
+
+export default Vue
+
+```
+
+## runtime 与 runtime-with-compiler的区别
+
+```js
+//entry-runtime
+/* @flow */
+
+import Vue from './runtime/index'
+
+export default Vue
+
+//entry-runtime-with-compiler
+Vue.compile = compileToFunctions
+
+export default Vue
+
+```
