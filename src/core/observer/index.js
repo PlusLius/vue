@@ -21,6 +21,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
 /**
  * In some cases we may want to disable observation inside a component's
  * update computation.
+ * 在某些情况下，我们可能希望禁用组件内部的观察更新计算
  */
 export let shouldObserve: boolean = true
 
@@ -33,6 +34,8 @@ export function toggleObserving (value: boolean) {
  * object. Once attached, the observer converts the target
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
+ * 观察者类用来触发每一个观察者对象，一旦触发，观察者将object对象的属性转换为getter setter，
+ * 并且收集依赖派发更新
  */
 export class Observer {
   value: any;
@@ -43,14 +46,17 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
+    //给value对象设置__ob__,值是Observer对象
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
       const augment = hasProto
         ? protoAugment
         : copyAugment
       augment(value, arrayMethods, arrayKeys)
+      //观察数组值
       this.observeArray(value)
     } else {
+      //观察对象值
       this.walk(value)
     }
   }
@@ -63,6 +69,7 @@ export class Observer {
   walk (obj: Object) {
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
+      //调用defineReactive
       defineReactive(obj, keys[i])
     }
   }
@@ -105,6 +112,8 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * Attempt to create an observer instance for a value,
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
+ * 尝试为value创建一个observer 实例,如果成功观察到，返回新的观察者
+ * 或已经有一个观察者，返回当前观察者
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
@@ -112,6 +121,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
   }
   let ob: Observer | void
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    //拿到原来的Observer
     ob = value.__ob__
   } else if (
     shouldObserve &&
@@ -120,16 +130,19 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     Object.isExtensible(value) &&
     !value._isVue
   ) {
+    //创建一个新的观察者
     ob = new Observer(value)
   }
   if (asRootData && ob) {
     ob.vmCount++
   }
+  //返回观察者
   return ob
 }
 
 /**
  * Define a reactive property on an Object.
+ * 给一个对象定义响应式属性
  */
 export function defineReactive (
   obj: Object,
@@ -194,6 +207,7 @@ export function defineReactive (
  * Set a property on an object. Adds the new property and
  * triggers change notification if the property doesn't
  * already exist.
+ * 设置一个属性到一个对象上，添加一个新的属性并且属性不存在时，触发更新通知，
  */
 export function set (target: Array<any> | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
@@ -229,6 +243,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
 
 /**
  * Delete a property and trigger change if necessary.
+ * 删除一个属性，在必要时触发更改
  */
 export function del (target: Array<any> | Object, key: any) {
   if (process.env.NODE_ENV !== 'production' &&
@@ -261,6 +276,7 @@ export function del (target: Array<any> | Object, key: any) {
 /**
  * Collect dependencies on array elements when the array is touched, since
  * we cannot intercept array element access like property getters.
+ * 当数组触发的时候收集数组元素的依赖，因此不能拦截数组元素访问，比如getters属性
  */
 function dependArray (value: Array<any>) {
   for (let e, i = 0, l = value.length; i < l; i++) {

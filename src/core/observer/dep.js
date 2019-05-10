@@ -1,6 +1,6 @@
 /* @flow */
 
-import type Watcher from './watcher'
+import Watcher from './watcher'
 import { remove } from '../util/index'
 
 let uid = 0
@@ -20,6 +20,7 @@ export default class Dep {
   }
 
   addSub (sub: Watcher) {
+    //将computed watcher加入到subs
     this.subs.push(sub)
   }
 
@@ -29,6 +30,7 @@ export default class Dep {
 
   depend () {
     if (Dep.target) {
+      //添加computed watcher.addDep将Dep添加进去
       Dep.target.addDep(this)
     }
   }

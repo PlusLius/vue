@@ -127,9 +127,11 @@ export default class Watcher {
 
   /**
    * Add a dependency to this directive.
+   * 添加一个依赖到这个指令
    */
   addDep (dep: Dep) {
     const id = dep.id
+    //添加dep
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
@@ -230,20 +232,28 @@ export default class Watcher {
   /**
    * Evaluate and return the value of the watcher.
    * This only gets called for computed property watchers.
+   * 计算并返回watcher的计算结果
+   * 这只是对computed属性观察者的调用
    */
   evaluate () {
+    //dirty为true
     if (this.dirty) {
+      //拿到最新的值
       this.value = this.get()
+      //dirty为false
       this.dirty = false
     }
+    //返回最新的值
     return this.value
   }
 
   /**
    * Depend on this watcher. Only for computed property watchers.
+   * 只适用于computed属性的watcher
    */
   depend () {
     if (this.dep && Dep.target) {
+      //执行depend
       this.dep.depend()
     }
   }
