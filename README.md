@@ -1,6 +1,19 @@
 ## Vue初始化
 
-> 为对象上挂方法挂属性
+1. 为对象上挂方法挂属性
+2. Vue.config就是设置全局的一些配置
+3. Vue.xxx静态方法
+4. Vue.$xxx实例属性/方法
+5. 选项就是new Vue({})中能够被解析的一些参数比如：
+const Child = {
+  inject: ['foo'],
+  data () {
+    return {
+      bar: this.foo
+    }
+  }
+}
+
 
 ```js
 const Vue = require('./vue')
@@ -583,4 +596,988 @@ Vue.nextTick()
         // "force" the microtask queue to be flushed by adding an empty timer.
         if (isIOS) { setTimeout(noop); }
       };
+```
+
+### Vue.set/delete
+
+```js
+var vm = new Vue({
+    data: {
+        test: 1
+    }
+})
+
+var vm2 = Vue.extend({})
+
+Vue.set(vm2, 'b', 2)
+```
+
+```js
+//vm.test拿到_data中的值_data代理的就是options[data]中的值
+  function proxy (target, sourceKey, key) {
+      sharedPropertyDefinition.get = function proxyGetter () {
+        //Vue[_data]['test']
+        return this[sourceKey][key]
+      };
+      sharedPropertyDefinition.set = function proxySetter (val) {
+        this[sourceKey][key] = val;
+      };
+      Object.defineProperty(target, key, sharedPropertyDefinition);
+    }
+  
+```
+
+```js
+//全局API基本都是在initGlobalAPI的时候进行挂载的
+  function initGlobalAPI (Vue) {
+     //...
+      Vue.set = set;
+  } 
+  initGlobalAPI(Vue);
+
+```
+
+```js
+ function isUndef (v) {
+      return v === undefined || v === null
+  
+ }
+  function isPrimitive (value) {
+    return (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      // $flow-disable-line
+      typeof value === 'symbol' ||
+      typeof value === 'boolean'
+    )
+  }}
+  function set (target, key, val) {
+      if (isUndef(target) || isPrimitive(target)
+      ) {
+        warn(("Cannot set reactive property on undefined, null, or primitive value: " + ((target))));
+      }
+      if (Array.isArray(target) && isValidArrayIndex(key)) {
+        target.length = Math.max(target.length, key);
+        target.splice(key, 1, val);
+        return val
+      }
+      if (key in target && !(key in Object.prototype)) {
+        target[key] = val;
+        return val
+      }
+      var ob = (target).__ob__;
+      //_isVue用来判断是不是根实例,或vue实例的根数据对象
+      if (target._isVue || (ob && ob.vmCount)) {
+        warn(
+          'Avoid adding reactive properties to a Vue instance or its root $data ' +
+          'at runtime - declare it upfront in the data option.'
+        );
+        return val
+      }
+      if (!ob) {
+        //tagert['b'] = 1
+        target[key] = val;
+        //返回设置结果
+        return val
+      }
+      defineReactive$$1(ob.value, key, val);
+      ob.dep.notify();
+      return val
+    }
+```
+
+### Vue.directive
+
+```js
+
+// 注册 (指令函数)
+Vue.directive('my-directive', function () {
+  // 这里将会被 `bind` 和 `update` 调用
+})
+
+var myDirective = Vue.directive('my-directive')
+
+```
+
+```js
+var ASSET_TYPES = [
+      'component',
+      'directive',
+      'filter'
+];
+  function initGlobalAPI (Vue) {
+     //...
+      initAssetRegisters(Vue);
+  } 
+  initGlobalAPI(Vue);
+
+```
+
+```js
+function isPlainObject (obj) {
+      return _toString.call(obj) === '[object Object]'
+    }
+   ASSET_TYPES.forEach(function (type) {
+        Vue[type] = function (
+          id,
+          definition
+        ) {
+          //id->my-directive
+          //definition -> cb
+          if (!definition) {
+            //拿到directive的cb
+            return this.options[type + 's'][id]
+          } else {
+            /* istanbul ignore if */
+            if (type === 'component') {
+              //验证下component的名字
+              validateComponentName(id);
+            }
+            //就是组件是不是个简单对象
+            if (type === 'component' && isPlainObject(definition)) {、
+              //简单对象构造成vue实例
+              definition.name = definition.name || id;
+              //_base是Vue构造函数对象用下面的extend方法来构造一个子类
+              definition = this.options._base.extend(definition);
+            }
+            if (type === 'directive' && typeof definition === 'function') {
+              //使用访问者模式在不同阶段都执行相同都definition
+              definition = { bind: definition, update: definition };
+            }
+            //将指令保存在options/directives/my-directive -> fn
+            this.options[type + 's'][id] = definition;
+            //将访问对象返回出去
+            return definition
+          }
+        };
+      });
+```
+
+### Vue.filter
+
+```js
+//与directive执行一致
+// 注册
+Vue.filter('my-filter', function (value) {
+  // 返回处理后的值
+})
+
+// getter，返回已注册的过滤器
+var myFilter = Vue.filter('my-filter')
+```
+
+### Vue.component
+
+```js
+//directive共用一个方法
+// 注册组件，传入一个扩展过的构造器
+Vue.component('my-component', Vue.extend({ /* ... */ }))
+
+// 注册组件，传入一个选项对象 (自动调用 Vue.extend)
+Vue.component('my-component', { /* ... */ })
+
+// 获取注册的组件 (始终返回构造器)
+var MyComponent = Vue.component('my-component')
+```
+
+```js
+  function initGlobalAPI (Vue) {
+    //...
+    initExtend(Vue);
+  }
+```
+
+```js
+function initExtend (Vue) {
+  //...
+   Vue.extend = function (extendOptions) {
+        extendOptions = extendOptions || {};
+        var Super = this;
+        var SuperId = Super.cid;
+        var cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {});
+        if (cachedCtors[SuperId]) {
+          return cachedCtors[SuperId]
+        }
+  
+        var name = extendOptions.name || Super.options.name;
+        if (name) {
+          validateComponentName(name);
+        }
+  
+        var Sub = function VueComponent (options) {
+          this._init(options);
+        };
+        Sub.prototype = Object.create(Super.prototype);
+        Sub.prototype.constructor = Sub;
+        Sub.cid = cid++;
+        Sub.options = mergeOptions(
+          Super.options,
+          extendOptions
+        );
+        Sub['super'] = Super;
+  
+        // For props and computed properties, we define the proxy getters on
+        // the Vue instances at extension time, on the extended prototype. This
+        // avoids Object.defineProperty calls for each instance created.
+        if (Sub.options.props) {
+          initProps$1(Sub);
+        }
+        if (Sub.options.computed) {
+          initComputed$1(Sub);
+        }
+  
+        // allow further extension/mixin/plugin usage
+        Sub.extend = Super.extend;
+        Sub.mixin = Super.mixin;
+        Sub.use = Super.use;
+  
+        // create asset registers, so extended classes
+        // can have their private assets too.
+        ASSET_TYPES.forEach(function (type) {
+          Sub[type] = Super[type];
+        });
+        // enable recursive self-lookup
+        if (name) {
+          Sub.options.components[name] = Sub;
+        }
+  
+        // keep a reference to the super options at extension time.
+        // later at instantiation we can check if Super's options have
+        // been updated.
+        Sub.superOptions = Super.options;
+        Sub.extendOptions = extendOptions;
+        Sub.sealedOptions = extend({}, Sub.options);
+  
+        // cache constructor
+        cachedCtors[SuperId] = Sub;
+        return Sub
+      };
+}
+```
+
+### Vue.use
+
+```js
+const MyPlugin = {}
+MyPlugin.install = function (Vue, options) {
+  // 1. 添加全局方法或属性
+  Vue.myGlobalMethod = function () {
+    // 逻辑...
+  }
+
+  // 2. 添加全局资源
+  Vue.directive('my-directive', {
+    bind (el, binding, vnode, oldVnode) {
+      // 逻辑...
+    }
+    ...
+  })
+
+  // 3. 注入组件选项
+  Vue.mixin({
+    created: function () {
+      // 逻辑...
+    }
+    ...
+  })
+
+  // 4. 添加实例方法
+  Vue.prototype.$myMethod = function (methodOptions) {
+    // 逻辑...
+  }
+}
+
+// 调用 `MyPlugin.install(Vue)`
+Vue.use(MyPlugin)
+
+```
+
+```js
+    function initGlobalAPI (Vue) {
+      //...
+        initUse(Vue);
+    }
+
+    function toArray (list, start) {
+      start = start || 0;
+      var i = list.length - start;
+      var ret = new Array(i);
+      while (i--) {
+        ret[i] = list[i + start];
+      }
+      return ret
+    }
+
+    function initUse (Vue) {
+      Vue.use = function (plugin) {
+        var installedPlugins = (this._installedPlugins || (this._installedPlugins = []));
+            //先把原来的插件检查下有没有和现在要下载的插件冲不冲突
+        if (installedPlugins.indexOf(plugin) > -1) {
+          return this
+        }
+  
+        // additional parameters
+        //把参数转数组
+        var args = toArray(arguments, 1);
+        //把vue构造函数加进去
+        args.unshift(this);
+        if (typeof plugin.install === 'function') {
+          //调用插件，把构造函数传进去
+          plugin.install.apply(plugin, args);
+        } else if (typeof plugin === 'function') {
+          plugin.apply(null, args);
+        }
+        //执行完插件后把插件存起来
+        installedPlugins.push(plugin);
+        return this
+      };
+    }
+```
+
+### Vue.mixin
+
+```js
+
+// 为自定义的选项 'myOption' 注入一个处理器。
+Vue.mixin({
+  created: function () {
+    var myOption = this.$options.myOption
+    if (myOption) {
+      console.log(myOption)
+    }
+  }
+})
+
+new Vue({
+  myOption: 'hello!'
+})
+// => "hello!"
+```
+
+```js
+ function initGlobalAPI (Vue) {
+      //...
+      initMixin$1(Vue);
+ }
+
+ function initMixin$1 (Vue) {
+      Vue.mixin = function (mixin) {
+        this.options = mergeOptions(this.options, mixin);
+        return this
+      };
+ }
+```
+
+### Vue.compile
+
+```js
+var res = Vue.compile('<div><span>{{ msg }}</span></div>')
+
+new Vue({
+  data: {
+    msg: 'hello'
+  },
+  render: res.render,
+  staticRenderFns: res.staticRenderFns
+})
+```
+
+```js
+
+   function createCompileToFunctionFn (compile) {
+      var cache = Object.create(null);
+  
+      return function compileToFunctions (
+        template,
+        options,
+        vm
+      ) {
+        options = extend({}, options);
+        var warn$$1 = options.warn || warn;
+        delete options.warn;
+  
+        /* istanbul ignore if */
+        {
+          // detect possible CSP restriction
+          try {
+            new Function('return 1');
+          } catch (e) {
+            if (e.toString().match(/unsafe-eval|CSP/)) {
+              warn$$1(
+                'It seems you are using the standalone build of Vue.js in an ' +
+                'environment with Content Security Policy that prohibits unsafe-eval. ' +
+                'The template compiler cannot work in this environment. Consider ' +
+                'relaxing the policy to allow unsafe-eval or pre-compiling your ' +
+                'templates into render functions.'
+              );
+            }
+          }
+        }
+  
+        // check cache
+        var key = options.delimiters
+          ? String(options.delimiters) + template
+          : template;
+        if (cache[key]) {
+          return cache[key]
+        }
+  
+        // 开始编译，把模版和options传进去
+        var compiled = compile(template, options);
+  
+        // check compilation errors/tips
+        {
+          if (compiled.errors && compiled.errors.length) {
+            if (options.outputSourceRange) {
+              compiled.errors.forEach(function (e) {
+                warn$$1(
+                  "Error compiling template:\n\n" + (e.msg) + "\n\n" +
+                  generateCodeFrame(template, e.start, e.end),
+                  vm
+                );
+              });
+            } else {
+              warn$$1(
+                "Error compiling template:\n\n" + template + "\n\n" +
+                compiled.errors.map(function (e) { return ("- " + e); }).join('\n') + '\n',
+                vm
+              );
+            }
+          }
+          if (compiled.tips && compiled.tips.length) {
+            if (options.outputSourceRange) {
+              compiled.tips.forEach(function (e) { return tip(e.msg, vm); });
+            } else {
+              compiled.tips.forEach(function (msg) { return tip(msg, vm); });
+            }
+          }
+        }
+  
+        // turn code into functions
+        var res = {};
+        var fnGenErrors = [];
+        res.render = createFunction(compiled.render, fnGenErrors);
+        res.staticRenderFns = compiled.staticRenderFns.map(function (code) {
+          return createFunction(code, fnGenErrors)
+        });
+  
+        // check function generation errors.
+        // this should only happen if there is a bug in the compiler itself.
+        // mostly for codegen development use
+        /* istanbul ignore if */
+        {
+          if ((!compiled.errors || !compiled.errors.length) && fnGenErrors.length) {
+            warn$$1(
+              "Failed to generate render function:\n\n" +
+              fnGenErrors.map(function (ref) {
+                var err = ref.err;
+                var code = ref.code;
+  
+                return ((err.toString()) + " in\n\n" + code + "\n");
+            }).join('\n'),
+              vm
+            );
+          }
+        }
+  
+        return (cache[key] = res)
+      }
+    }
+
+   function createCompilerCreator (baseCompile) {
+      return function createCompiler (baseOptions) {
+        function compile (
+          template,
+          options
+        ) {
+          var finalOptions = Object.create(baseOptions);
+          var errors = [];
+          var tips = [];
+  
+          var warn = function (msg, range, tip) {
+            (tip ? tips : errors).push(msg);
+          };
+  
+          if (options) {
+            if (options.outputSourceRange) {
+              // $flow-disable-line
+              var leadingSpaceLength = template.match(/^\s*/)[0].length;
+  
+              warn = function (msg, range, tip) {
+                var data = { msg: msg };
+                if (range) {
+                  if (range.start != null) {
+                    data.start = range.start + leadingSpaceLength;
+                  }
+                  if (range.end != null) {
+                    data.end = range.end + leadingSpaceLength;
+                  }
+                }
+                (tip ? tips : errors).push(data);
+              };
+            }
+            // merge custom modules
+            if (options.modules) {
+              finalOptions.modules =
+                (baseOptions.modules || []).concat(options.modules);
+            }
+            // merge custom directives
+            if (options.directives) {
+              finalOptions.directives = extend(
+                Object.create(baseOptions.directives || null),
+                options.directives
+              );
+            }
+            // copy other options
+            for (var key in options) {
+              if (key !== 'modules' && key !== 'directives') {
+                finalOptions[key] = options[key];
+              }
+            }
+          }
+  
+          finalOptions.warn = warn;
+  
+          var compiled = baseCompile(template.trim(), finalOptions);
+          {
+            detectErrors(compiled.ast, warn);
+          }
+          compiled.errors = errors;
+          compiled.tips = tips;
+          return compiled
+        }
+  
+        return {
+          compile: compile, //返回compile
+          compileToFunctions: createCompileToFunctionFn(compile)//返回compilerToFunctions
+        }
+      }
+    }
+
+  var createCompiler = createCompilerCreator(function baseCompile (
+      template,
+      options
+    ) {
+      var ast = parse(template.trim(), options);
+      if (options.optimize !== false) {
+        optimize(ast, options);
+      }
+      var code = generate(ast, options);
+      return {
+        ast: ast,
+        render: code.render,
+        staticRenderFns: code.staticRenderFns
+      }
+    });
+
+       function parse (
+      template,
+      options
+    ) {
+      warn$2 = options.warn || baseWarn;
+  
+      platformIsPreTag = options.isPreTag || no;
+      platformMustUseProp = options.mustUseProp || no;
+      platformGetTagNamespace = options.getTagNamespace || no;
+      var isReservedTag = options.isReservedTag || no;
+      maybeComponent = function (el) { return !!el.component || !isReservedTag(el.tag); };
+  
+      transforms = pluckModuleFunction(options.modules, 'transformNode');
+      preTransforms = pluckModuleFunction(options.modules, 'preTransformNode');
+      postTransforms = pluckModuleFunction(options.modules, 'postTransformNode');
+  
+      delimiters = options.delimiters;
+  
+      var stack = [];
+      var preserveWhitespace = options.preserveWhitespace !== false;
+      var whitespaceOption = options.whitespace;
+      var root;
+      var currentParent;
+      var inVPre = false;
+      var inPre = false;
+      var warned = false;
+  
+      function warnOnce (msg, range) {
+        if (!warned) {
+          warned = true;
+          warn$2(msg, range);
+        }
+      }
+  
+      function closeElement (element) {
+        trimEndingWhitespace(element);
+        if (!inVPre && !element.processed) {
+          element = processElement(element, options);
+        }
+        // tree management
+        if (!stack.length && element !== root) {
+          // allow root elements with v-if, v-else-if and v-else
+          if (root.if && (element.elseif || element.else)) {
+            {
+              checkRootConstraints(element);
+            }
+            addIfCondition(root, {
+              exp: element.elseif,
+              block: element
+            });
+          } else {
+            warnOnce(
+              "Component template should contain exactly one root element. " +
+              "If you are using v-if on multiple elements, " +
+              "use v-else-if to chain them instead.",
+              { start: element.start }
+            );
+          }
+        }
+        if (currentParent && !element.forbidden) {
+          if (element.elseif || element.else) {
+            processIfConditions(element, currentParent);
+          } else {
+            if (element.slotScope) {
+              // scoped slot
+              // keep it in the children list so that v-else(-if) conditions can
+              // find it as the prev node.
+              var name = element.slotTarget || '"default"'
+              ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element;
+            }
+            currentParent.children.push(element);
+            element.parent = currentParent;
+          }
+        }
+  
+        // final children cleanup
+        // filter out scoped slots
+        element.children = element.children.filter(function (c) { return !(c).slotScope; });
+        // remove trailing whitespace node again
+        trimEndingWhitespace(element);
+  
+        // check pre state
+        if (element.pre) {
+          inVPre = false;
+        }
+        if (platformIsPreTag(element.tag)) {
+          inPre = false;
+        }
+        // apply post-transforms
+        for (var i = 0; i < postTransforms.length; i++) {
+          postTransforms[i](element, options);
+        }
+      }
+  
+      function trimEndingWhitespace (el) {
+        // remove trailing whitespace node
+        if (!inPre) {
+          var lastNode;
+          while (
+            (lastNode = el.children[el.children.length - 1]) &&
+            lastNode.type === 3 &&
+            lastNode.text === ' '
+          ) {
+            el.children.pop();
+          }
+        }
+      }
+  
+      function checkRootConstraints (el) {
+        if (el.tag === 'slot' || el.tag === 'template') {
+          warnOnce(
+            "Cannot use <" + (el.tag) + "> as component root element because it may " +
+            'contain multiple nodes.',
+            { start: el.start }
+          );
+        }
+        if (el.attrsMap.hasOwnProperty('v-for')) {
+          warnOnce(
+            'Cannot use v-for on stateful component root element because ' +
+            'it renders multiple elements.',
+            el.rawAttrsMap['v-for']
+          );
+        }
+      }
+  
+      parseHTML(template, {
+        warn: warn$2,
+        expectHTML: options.expectHTML,
+        isUnaryTag: options.isUnaryTag,
+        canBeLeftOpenTag: options.canBeLeftOpenTag,
+        shouldDecodeNewlines: options.shouldDecodeNewlines,
+        shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
+        shouldKeepComment: options.comments,
+        outputSourceRange: options.outputSourceRange,
+        start: function start (tag, attrs, unary, start$1, end) {
+          // check namespace.
+          // inherit parent ns if there is one
+          var ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag);
+  
+          // handle IE svg bug
+          /* istanbul ignore if */
+          if (isIE && ns === 'svg') {
+            attrs = guardIESVGBug(attrs);
+          }
+  
+          var element = createASTElement(tag, attrs, currentParent);
+          if (ns) {
+            element.ns = ns;
+          }
+  
+          {
+            if (options.outputSourceRange) {
+              element.start = start$1;
+              element.end = end;
+              element.rawAttrsMap = element.attrsList.reduce(function (cumulated, attr) {
+                cumulated[attr.name] = attr;
+                return cumulated
+              }, {});
+            }
+            attrs.forEach(function (attr) {
+              if (invalidAttributeRE.test(attr.name)) {
+                warn$2(
+                  "Invalid dynamic argument expression: attribute names cannot contain " +
+                  "spaces, quotes, <, >, / or =.",
+                  {
+                    start: attr.start + attr.name.indexOf("["),
+                    end: attr.start + attr.name.length
+                  }
+                );
+              }
+            });
+          }
+  
+          if (isForbiddenTag(element) && !isServerRendering()) {
+            element.forbidden = true;
+            warn$2(
+              'Templates should only be responsible for mapping the state to the ' +
+              'UI. Avoid placing tags with side-effects in your templates, such as ' +
+              "<" + tag + ">" + ', as they will not be parsed.',
+              { start: element.start }
+            );
+          }
+  
+          // apply pre-transforms
+          for (var i = 0; i < preTransforms.length; i++) {
+            element = preTransforms[i](element, options) || element;
+          }
+  
+          if (!inVPre) {
+            processPre(element);
+            if (element.pre) {
+              inVPre = true;
+            }
+          }
+          if (platformIsPreTag(element.tag)) {
+            inPre = true;
+          }
+          if (inVPre) {
+            processRawAttrs(element);
+          } else if (!element.processed) {
+            // structural directives
+            processFor(element);
+            processIf(element);
+            processOnce(element);
+          }
+  
+          if (!root) {
+            root = element;
+            {
+              checkRootConstraints(root);
+            }
+          }
+  
+          if (!unary) {
+            currentParent = element;
+            stack.push(element);
+          } else {
+            closeElement(element);
+          }
+        },
+  
+        end: function end (tag, start, end$1) {
+          var element = stack[stack.length - 1];
+          // pop stack
+          stack.length -= 1;
+          currentParent = stack[stack.length - 1];
+          if (options.outputSourceRange) {
+            element.end = end$1;
+          }
+          closeElement(element);
+        },
+  
+        chars: function chars (text, start, end) {
+          if (!currentParent) {
+            {
+              if (text === template) {
+                warnOnce(
+                  'Component template requires a root element, rather than just text.',
+                  { start: start }
+                );
+              } else if ((text = text.trim())) {
+                warnOnce(
+                  ("text \"" + text + "\" outside root element will be ignored."),
+                  { start: start }
+                );
+              }
+            }
+            return
+          }
+          // IE textarea placeholder bug
+          /* istanbul ignore if */
+          if (isIE &&
+            currentParent.tag === 'textarea' &&
+            currentParent.attrsMap.placeholder === text
+          ) {
+            return
+          }
+          var children = currentParent.children;
+          if (inPre || text.trim()) {
+            text = isTextTag(currentParent) ? text : decodeHTMLCached(text);
+          } else if (!children.length) {
+            // remove the whitespace-only node right after an opening tag
+            text = '';
+          } else if (whitespaceOption) {
+            if (whitespaceOption === 'condense') {
+              // in condense mode, remove the whitespace node if it contains
+              // line break, otherwise condense to a single space
+              text = lineBreakRE.test(text) ? '' : ' ';
+            } else {
+              text = ' ';
+            }
+          } else {
+            text = preserveWhitespace ? ' ' : '';
+          }
+          if (text) {
+            if (!inPre && whitespaceOption === 'condense') {
+              // condense consecutive whitespaces into single space
+              text = text.replace(whitespaceRE$1, ' ');
+            }
+            var res;
+            var child;
+            if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
+              child = {
+                type: 2,
+                expression: res.expression,
+                tokens: res.tokens,
+                text: text
+              };
+            } else if (text !== ' ' || !children.length || children[children.length - 1].text !== ' ') {
+              child = {
+                type: 3,
+                text: text
+              };
+            }
+            if (child) {
+              if (options.outputSourceRange) {
+                child.start = start;
+                child.end = end;
+              }
+              children.push(child);
+            }
+          }
+        },
+        comment: function comment (text, start, end) {
+          // adding anyting as a sibling to the root node is forbidden
+          // comments should still be allowed, but ignored
+          if (currentParent) {
+            var child = {
+              type: 3,
+              text: text,
+              isComment: true
+            };
+            if (options.outputSourceRange) {
+              child.start = start;
+              child.end = end;
+            }
+            currentParent.children.push(child);
+          }
+        }
+      });
+      return root
+    }
+  
+
+ var ref$1 = createCompiler(baseOptions);
+ var compile = ref$1.compile;
+ var compileToFunctions = ref$1.compileToFunctions;
+
+ Vue.compile = compileToFunctions;
+
+ 
+```
+
+### Vue.observable
+
+```js
+const state = Vue.observable({ count: 0 })
+
+const Demo = {
+  render(h) {
+    return h('button', {
+      on: { click: () => { state.count++ }}
+    }, `count is: ${state.count}`)
+  }
+}
+```
+
+```js
+function initGlobalAPI (Vue) {
+  //...
+    Vue.observable = function (obj) {
+        observe(obj);
+        return obj
+    };
+  
+}
+
+function isObject (obj) {
+    return obj !== null && typeof obj === 'object'
+}
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+function hasOwn (obj, key) {
+  return hasOwnProperty.call(obj, key)
+}
+
+function isPlainObject (obj) {
+  return _toString.call(obj) === '[object Object]'
+}
+  var Observer = function Observer (value) {
+      this.value = value;
+      this.dep = new Dep();
+      this.vmCount = 0;
+      def(value, '__ob__', this);
+      if (Array.isArray(value)) {
+        if (hasProto) {
+          protoAugment(value, arrayMethods);
+        } else {
+          copyAugment(value, arrayMethods, arrayKeys);
+        }
+        this.observeArray(value);
+      } else {
+        this.walk(value);
+      }
+    };
+
+function observe (value, asRootData) {
+      //判断是不是一个对象或者一个vnode节点
+      if (!isObject(value) || value instanceof VNode) {
+        return
+      }
+      var ob;
+      //判断有没有__ob__就是判断是不是响应式对象
+      if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+        ob = value.__ob__;
+      } else if (
+        shouldObserve &&
+        !isServerRendering() &&
+        (Array.isArray(value) || isPlainObject(value)) &&
+        Object.isExtensible(value) &&
+        !value._isVue
+      ) {
+        //开始将普通对象转换为响应对象
+        ob = new Observer(value);
+      }
+      if (asRootData && ob) {
+        ob.vmCount++;
+      }
+      return ob
+    }
+  
 ```
