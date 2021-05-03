@@ -7,7 +7,7 @@ import { initExtend } from './extend'
 import { initAssetRegisters } from './assets'
 import { set, del } from '../observer/index' // 拿到响应式后的sel,del把它弄成全局的，作为数组劫持后的缺陷的补充
 import { ASSET_TYPES } from 'shared/constants' // 组件，指令，过滤器的一个常量定义
-import builtInComponents from '../components/index'
+import builtInComponents from '../components/index' // 内置组件就一个keep-alive
 
 import {
   warn, // 开发环境提示用的
