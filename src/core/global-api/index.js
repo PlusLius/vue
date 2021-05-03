@@ -10,10 +10,10 @@ import { ASSET_TYPES } from 'shared/constants' // 组件，指令，过滤器的
 import builtInComponents from '../components/index'
 
 import {
-  warn,
-  extend,
+  warn, // 开发环境提示用的
+  extend, // 用于拷贝对象
   nextTick, // 多个watcher更新使用nextTick策略
-  mergeOptions,
+  mergeOptions, // 将2个对象规范化
   defineReactive // 进行响应式依赖收集
 } from '../util/index'
 
