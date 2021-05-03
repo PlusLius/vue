@@ -5,7 +5,7 @@ import { initUse } from './use'
 import { initMixin } from './mixin'
 import { initExtend } from './extend'
 import { initAssetRegisters } from './assets'
-import { set, del } from '../observer/index'
+import { set, del } from '../observer/index' // 拿到响应式后的sel,del把它弄成全局的，作为数组劫持后的缺陷的补充
 import { ASSET_TYPES } from 'shared/constants'
 import builtInComponents from '../components/index'
 
