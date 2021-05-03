@@ -4,6 +4,7 @@ import { emptyNode } from 'core/vdom/patch'
 import { resolveAsset, handleError } from 'core/util/index'
 import { mergeVNodeHook } from 'core/vdom/helpers/index'
 
+// 指令提供了一些生命周期钩子函数
 export default {
   create: updateDirectives,
   update: updateDirectives,
