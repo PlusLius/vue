@@ -20,7 +20,7 @@ function Vue (options) {
 
 //将构造函数交给init处理
 initMixin(Vue)
-stateMixin(Vue)
+stateMixin(Vue) // 对options.data,computed,props进行响应式监听
 eventsMixin(Vue)  // vue.prototype.$emit, vue.prototype.$on .... 等事件的方法
 lifecycleMixin(Vue)
 renderMixin(Vue) // vue.prototype.$nextick,vue.prototype._render定义了2个方法
