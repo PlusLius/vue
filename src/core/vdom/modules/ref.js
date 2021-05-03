@@ -2,6 +2,7 @@
 
 import { remove, isDef } from 'shared/util'
 
+// ref也属于指令，所以也有钩子函数
 export default {
   create (_: any, vnode: VNodeWithData) {
     registerRef(vnode)
