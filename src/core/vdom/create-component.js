@@ -32,7 +32,8 @@ import {
   renderRecyclableComponentTemplate
 } from 'weex/runtime/recycle-list/render-component-template'
 
-// inline hooks to be invoked on component VNodes during patch
+// inline hooks to be invoked on component VNodes during patch 
+// 组件内部钩子,创建组件的会继承父类实例，调用组件钩子函数，组件实例new Vue这个过程中会继续递归创建其他组件，最终返回一个vnode，然后子组件调用$mount去生成dom
 const componentVNodeHooks = {
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
     if (
@@ -98,6 +99,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+// 创建组件返回vnode
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -183,6 +185,7 @@ export function createComponent (
   }
 
   // install component management hooks onto the placeholder node
+   // 创建组件的时候会执行组件钩子
   installComponentHooks(data)
 
   // return a placeholder vnode
@@ -205,6 +208,7 @@ export function createComponent (
   return vnode
 }
 
+// 创建组件实例
 export function createComponentInstanceForVnode (
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state
@@ -220,6 +224,7 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // new Vue(options)
   return new vnode.componentOptions.Ctor(options)
 }
 
