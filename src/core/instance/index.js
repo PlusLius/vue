@@ -23,7 +23,7 @@ initMixin(Vue)
 stateMixin(Vue)
 eventsMixin(Vue)
 lifecycleMixin(Vue)
-renderMixin(Vue)
+renderMixin(Vue) // vue.prototype.$nextick,vue.prototype._render定义了2个方法
 
 //Vue实例，Vue真正执行的地方
 export default Vue
