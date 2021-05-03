@@ -6,15 +6,15 @@ import { initMixin } from './mixin'
 import { initExtend } from './extend'
 import { initAssetRegisters } from './assets'
 import { set, del } from '../observer/index' // 拿到响应式后的sel,del把它弄成全局的，作为数组劫持后的缺陷的补充
-import { ASSET_TYPES } from 'shared/constants'
+import { ASSET_TYPES } from 'shared/constants' // 组件，指令，过滤器的一个常量定义
 import builtInComponents from '../components/index'
 
 import {
   warn,
   extend,
-  nextTick,
+  nextTick, // 多个watcher更新使用nextTick策略
   mergeOptions,
-  defineReactive
+  defineReactive // 进行响应式依赖收集
 } from '../util/index'
 
 //初始化Vue实例的全局方法
@@ -40,12 +40,12 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     warn,
     extend,
     mergeOptions,
-    defineReactive
+    defineReactive // 依赖收集
   }
 
-  Vue.set = set
-  Vue.delete = del
-  Vue.nextTick = nextTick
+  Vue.set = set // 通过静态方法也可以访问
+  Vue.delete = del // 通过静态方法可以访问 
+  Vue.nextTick = nextTick // 通过静态方法也可以访问
 
   Vue.options = Object.create(null)
   /**
