@@ -83,14 +83,15 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
+    // 初始化生命周期在初始化vue实例阶段
     initLifecycle(vm)
     initEvents(vm)
     initRender(vm)
-    callHook(vm, 'beforeCreate')
+    callHook(vm, 'beforeCreate') // beforeCreate 的钩子函数中就不能获取到 props、data 中定义的值，也不能调用 methods 中定义的函数。
     initInjections(vm) // resolve injections before data/props
-    initState(vm)
+    initState(vm) //initState 的作用是初始化 props、data、methods、watch、computed 等属性
     initProvide(vm) // resolve provide after data/props
-    callHook(vm, 'created')
+    callHook(vm, 'created')// 在这俩个钩子函数执行的时候，并没有渲染 DOM，所以我们也不能够访问 DOM
 
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
