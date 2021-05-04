@@ -63,6 +63,7 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   initProxy = function initProxy (vm) {
+    // Proxy这个接口存在，就是使用Proxy代码vm实例
     if (hasProxy) {
       // determine which proxy handler to use
       const options = vm.$options
@@ -71,6 +72,7 @@ if (process.env.NODE_ENV !== 'production') {
         : hasHandler
       vm._renderProxy = new Proxy(vm, handlers)
     } else {
+      // 否则就直接赋值
       vm._renderProxy = vm
     }
   }
