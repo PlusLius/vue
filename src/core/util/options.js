@@ -1,5 +1,5 @@
 /* @flow */
-
+// option文件主要作用是各种配置合并的
 import config from '../config'
 import { warn } from './debug'
 import { nativeWatch } from './env'
