@@ -724,7 +724,7 @@ export function mergeOptions (
     // 调用对应key的合并策略方法，最终将合并后的结果赋值给当前key
     options[key] = strat(parent[key], child[key], vm, key)
   }
-  // 拿到规范化后的options
+  // 拿到规范化后的options与父子组件合并后的options
   return options
 }
 
