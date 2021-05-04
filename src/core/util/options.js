@@ -1,5 +1,14 @@
 /* @flow */
 // option文件主要作用是各种配置合并的
+// 对于 el、propsData 选项使用默认的合并策略 defaultStrat。
+// 对于 data 选项，使用 mergeDataOrFn 函数进行处理，最终结果是 data 选项将变成一个函数，且该函数的执行结果为真正的数据对象。
+// 对于 生命周期钩子 选项，将合并成数组，使得父子选项中的钩子函数都能够被执行
+// 对于 directives、filters 以及 components 等资源选项，父子选项将以原型链的形式被处理，正是因为这样我们才能够在任何地方都使用内置组件、指令等。
+// 对于 watch 选项的合并处理，类似于生命周期钩子，如果父子选项都有相同的观测字段，将被合并为数组，这样观察者都将被执行。
+// 对于 props、methods、inject、computed 选项，父选项始终可用，但是子选项会覆盖同名的父选项字段。
+// 对于 provide 选项，其合并策略使用与 data 选项相同的 mergeDataOrFn 函数。
+// 最后，以上没有提及到的选项都将使默认选项 defaultStrat。
+// 最最后，默认合并策略函数 defaultStrat 的策略是：只要子选项不是 undefined 就使用子选项，否则使用父选项。
 import config from '../config'
 import { warn } from './debug'
 import { nativeWatch } from './env'
@@ -25,19 +34,42 @@ import {
  * how to merge a parent option value and a child option
  * value into the final value.
  */
-const strats = config.optionMergeStrategies
+const strats = config.optionMergeStrategies // config文件的optionMergeStrategies =》 {}
 
 /**
  * Options with restrictions
  */
 if (process.env.NODE_ENV !== 'production') {
+  // 子组件
+  // var ChildComponent = {
+  //   el: '#app2',
+  //   created: function () {
+  //     console.log('child component created')
+  //   }
+  // }
+
+  // // 父组件
+  // new Vue({
+  //   el: '#app',
+  //   data: {
+  //     test: 1
+  //   },
+  //   components: {
+  //     ChildComponent
+  //   }
+  // })
   strats.el = strats.propsData = function (parent, child, vm, key) {
-    if (!vm) {
+  // Sub.options = mergeOptions( 
+  //   Super.options,
+  //   extendOptions
+  // )
+    if (!vm) { // 子类调用mergeOptions是没有vm实例的
       warn(
         `option "${key}" can only be used during instance ` +
         'creation with the `new` keyword.'
       )
     }
+    // el,propsData都将调用defaultStrat，默认策略有子取子的子值返回，否则取父的
     return defaultStrat(parent, child)
   }
 }
@@ -53,12 +85,15 @@ function mergeData (to: Object, from: ?Object): Object {
     key = keys[i]
     toVal = to[key]
     fromVal = from[key]
+    // to中如何没有这个key给to加上这个key，并且将fromVal的值给to的key
     if (!hasOwn(to, key)) {
       set(to, key, fromVal)
     } else if (isPlainObject(toVal) && isPlainObject(fromVal)) {
+      // 如果to,from的值是个对象就递归调用
       mergeData(toVal, fromVal)
     }
   }
+  // 最后将from所有的key，value拷贝到to对象上
   return to
 }
 
@@ -72,9 +107,20 @@ export function mergeDataOrFn (
 ): ?Function {
   if (!vm) {
     // in a Vue.extend merge, both should be functions
+    // vue.extend的调用方式，childVal不存在返回parentVal
+    //子里没有data     Vue.extend({})
     if (!childVal) {
       return parentVal
     }
+    // parentVal不存在返回childVal
+    // const Parent = Vue.extend({
+    //   data: function () {
+    //     return {
+    //       test: 1
+    //     }
+    //   }
+    // })
+    // const Child = Parent.extend({})
     if (!parentVal) {
       return childVal
     }
@@ -83,7 +129,9 @@ export function mergeDataOrFn (
     // merged result of both functions... no need to
     // check if parentVal is a function here because
     // it has to be a function to pass previous merges.
+    // 当parentVal和childVal都存在时返回一个函数
     return function mergedDataFn () {
+      // mergeData用来递归合并val
       return mergeData(
         typeof childVal === 'function' ? childVal.call(this, this) : childVal,
         typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
@@ -92,6 +140,7 @@ export function mergeDataOrFn (
   } else {
     return function mergedInstanceDataFn () {
       // instance merge
+      // new Vue的方式调用
       const instanceData = typeof childVal === 'function'
         ? childVal.call(vm, vm)
         : childVal
@@ -99,14 +148,16 @@ export function mergeDataOrFn (
         ? parentVal.call(vm, vm)
         : parentVal
       if (instanceData) {
+        // 拷贝数据
         return mergeData(instanceData, defaultData)
       } else {
+        // 没有data返回parentData
         return defaultData
       }
     }
   }
 }
-
+// data的合并策略
 strats.data = function (
   parentVal: any,
   childVal: any,
@@ -123,9 +174,10 @@ strats.data = function (
 
       return parentVal
     }
+    // vue.extend调用方法没有vm实例
     return mergeDataOrFn(parentVal, childVal)
   }
-
+  // 使用vm实例的调用方法
   return mergeDataOrFn(parentVal, childVal, vm)
 }
 
@@ -139,12 +191,34 @@ function mergeHook (
   return childVal
     ? parentVal
       ? parentVal.concat(childVal)
+       // [
+      //   created: function () {
+      //     console.log('parentVal')
+      //   },
+      //   created: function () {
+      //     console.log('childVal')
+      //   }
+      // ]
       : Array.isArray(childVal)
         ? childVal
         : [childVal]
+
+//      new Vue({
+//         created: [
+//           function () {
+//             console.log('first')
+//           },
+//           function () {
+//             console.log('second')
+//           },
+//           function () {
+//             console.log('third')
+//           }
+//         ]
+//       })
     : parentVal
 }
-
+// 钩子函数的合并策略
 LIFECYCLE_HOOKS.forEach(hook => {
   strats[hook] = mergeHook
 })
@@ -156,6 +230,7 @@ LIFECYCLE_HOOKS.forEach(hook => {
  * a three-way merge between constructor options, instance
  * options and parent options.
  */
+// 在 Vue 中 directives、filters 以及 components 被认为是资源，
 function mergeAssets (
   parentVal: ?Object,
   childVal: ?Object,
@@ -165,12 +240,21 @@ function mergeAssets (
   const res = Object.create(parentVal || null)
   if (childVal) {
     process.env.NODE_ENV !== 'production' && assertObjectType(key, childVal, vm)
+    //res = {
+    //   ChildComponent
+    //   // 原型
+    //   __proto__: {
+    //     KeepAlive,
+    //     Transition,
+    //     TransitionGroup
+    //   }
+    // }
     return extend(res, childVal)
   } else {
     return res
   }
 }
-
+// assets的合并策略
 ASSET_TYPES.forEach(function (type) {
   strats[type + 's'] = mergeAssets
 })
@@ -179,7 +263,7 @@ ASSET_TYPES.forEach(function (type) {
  * Watchers.
  *
  * Watchers hashes should not overwrite one
- * another, so we merge them as arrays.
+ * another, so we merge them as arrays.  watch的合并策略
  */
 strats.watch = function (
   parentVal: ?Object,
@@ -212,7 +296,7 @@ strats.watch = function (
 }
 
 /**
- * Other object hashes.
+ * Other object hashes. props,methods,inject,computed的合并策略
  */
 strats.props =
 strats.methods =
@@ -235,7 +319,7 @@ strats.computed = function (
 strats.provide = mergeDataOrFn
 
 /**
- * Default strategy.
+ * Default strategy. 默认就是有儿子的值拿儿子的值，不然就拿父亲的值
  */
 const defaultStrat = function (parentVal: any, childVal: any): any {
   return childVal === undefined
@@ -455,7 +539,7 @@ function normalizeInject (options: Object, vm: ?Component) {
 })
  */
 function normalizeDirectives (options: Object) {
-  <div id="app" v-test1 v-test2>{{test}}</div>
+//   <div id="app" v-test1 v-test2>{{test}}</div>
 
 // var vm = new Vue({
 //   el: '#app',
@@ -606,18 +690,38 @@ export function mergeOptions (
       parent = mergeOptions(parent, child.mixins[i], vm)
     }
   }
+  // 规范化后进行合并options
   const options = {}
   let key
+  // 循环parent中的key进行合并
+  //   Vue.options = {
+  //   components: {
+  //       KeepAlive,
+  //       Transition,
+  //       TransitionGroup
+  //   },
+  //   directives:{
+  //       model,
+  //       show
+  //   },
+  //   filters: Object.create(null),
+  //   _base: Vue
+  // }
   for (key in parent) {
     mergeField(key)
   }
+  // 循环child中的key进行合并
   for (key in child) {
+    // 如果 child 对象的键也在 parent 上出现，那么就不要再调用 mergeField 了，因为在上一个 for in 循环中已经调用过了，这就避免了重复调用。
     if (!hasOwn(parent, key)) {
       mergeField(key)
     }
   }
+  // 具体的合并操作
   function mergeField (key) {
+    // 根据key取到对应的合并策略的方法，没有取到就使用默认的合并方法
     const strat = strats[key] || defaultStrat
+    // 调用对应key的合并策略方法，最终将合并后的结果赋值给当前key
     options[key] = strat(parent[key], child[key], vm, key)
   }
   // 拿到规范化后的options
