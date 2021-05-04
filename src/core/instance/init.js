@@ -65,8 +65,13 @@ export function initMixin (Vue: Class<Component>) {
       vm.$options = mergeOptions(
         //解析vm.contructor.options
         resolveConstructorOptions(vm.constructor),
-        options || {},
-        vm
+        options || {},// {  用户传入的options
+                      //   el: '#app',
+                      //   data: {
+                      //     test: 1
+                      //   }
+                      // }
+        vm // vm实例
       )
     }
     /* istanbul ignore else */
@@ -126,40 +131,64 @@ export function initInternalComponent (vm: Component, options: InternalComponent
     opts.staticRenderFns = options.staticRenderFns
   }
 }
-
+// 解析构造函数的options,vm.constructor
+// Vue.options = {
+// 	components: {
+// 		KeepAlive
+// 		Transition,
+//     	TransitionGroup
+// 	},
+// 	directives:{
+// 	    model,
+//         show
+// 	},
+// 	filters: Object.create(null),
+// 	_base: Vue
+// }
 export function resolveConstructorOptions (Ctor: Class<Component>) {
-  //拿到optisons
+  //拿到vm.constructor.optisons
   let options = Ctor.options
   //判断是不是子类
+  // const Sub = Vue.extend()
+  // const s = new Sub()
+  // console.log(Sub.super)  // Vue 只有子类才能拿到super
   if (Ctor.super) {
-    //拿到父类options
+    //拿到父类options,通过递归去拿父类的options
     const superOptions = resolveConstructorOptions(Ctor.super)
+    // 缓存当前vm实例的contructor父类的options
     const cachedSuperOptions = Ctor.superOptions
+    // 父options与之前父options不一致时
     if (superOptions !== cachedSuperOptions) {
       // super option changed,
       // need to resolve new options.
+      // 记录父级更改过的options
       Ctor.superOptions = superOptions
       // check if there are any late-modified/attached options (#4976)
+      // 该了options之后拿到改了的options
       const modifiedOptions = resolveModifiedOptions(Ctor)
       // update base extend options
+      // 更新改了的options
       if (modifiedOptions) {
+        // 将改了的options混入到extendOptions
         extend(Ctor.extendOptions, modifiedOptions)
       }
+      // 合并options
       options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)
       if (options.name) {
+        // 给当前组件记录对应的constructor
         options.components[options.name] = Ctor
       }
     }
   }
-  //返回Vue.options
+  //返回Vue.options 就是拿到Vue.options，返回父类的options
   return options
 }
 
 function resolveModifiedOptions (Ctor: Class<Component>): ?Object {
   let modified
-  const latest = Ctor.options
-  const extended = Ctor.extendOptions
-  const sealed = Ctor.sealedOptions
+  const latest = Ctor.options // 当前的options
+  const extended = Ctor.extendOptions // extendOptions
+  const sealed = Ctor.sealedOptions // 
   for (const key in latest) {
     if (latest[key] !== sealed[key]) {
       if (!modified) modified = {}
@@ -168,7 +197,7 @@ function resolveModifiedOptions (Ctor: Class<Component>): ?Object {
   }
   return modified
 }
-
+// 删除重复数据
 function dedupe (latest, extended, sealed) {
   // compare latest and sealed to ensure lifecycle hooks won't be duplicated
   // between merges
