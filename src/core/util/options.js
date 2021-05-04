@@ -248,11 +248,12 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
  */
 //检查组件的命名合法性
 function checkComponents (options: Object) {
+  // 循环检查options.components里的组件是不是合法的命名
   for (const key in options.components) {
     validateComponentName(key)
   }
 }
-//真正检测组件命名合法性方法
+//真正检测组件命名合法性方法，检查格式和是不是内置标签
 export function validateComponentName (name: string) {
   if (!/^[a-zA-Z][\w-]*$/.test(name)) {
     warn(
@@ -287,23 +288,41 @@ export function validateComponentName (name: string) {
       }
 }
  */
-function normalizeProps (options: Object, vm: ?Component) {
+function normalizeProps (options: Object, vm: ?Component) { // 用户传入的options, 当前vm实例
   const props = options.props
   if (!props) return
   const res = {}
   let i, val, name
+  // const ChildComponent = {
+  //   props: ['someData']
+  // }
+  // 如果当前props是个数组
   if (Array.isArray(props)) {
     i = props.length
+    // 倒着拿
     while (i--) {
+      // 拿到props中的属性
       val = props[i]
+      // props中的属性是字符串转成驼峰规范
       if (typeof val === 'string') {
         name = camelize(val)
         res[name] = { type: null }
-      } else if (process.env.NODE_ENV !== 'production') {
+        // res = {
+        //   someData: { type: null }
+         // }
+      } else if (process.env.NODE_ENV !== 'production') { // 如果不是字符串则报错
         warn('props must be strings when using array syntax.')
       }
     }
   } else if (isPlainObject(props)) {
+//     props是对象的情况
+//     const ChildComponent = {
+//       props: {
+//         someData: {
+//           type: Number,
+//           default: 0
+//         }
+//      }
     for (const key in props) {
       val = props[key]
       //连字符转驼峰
@@ -311,15 +330,20 @@ function normalizeProps (options: Object, vm: ?Component) {
       res[name] = isPlainObject(val)
         ? val
         : { type: val }
+      // res = {
+      // someData: {
+     //    type: Number
+      //}
+      //}
     }
-  } else if (process.env.NODE_ENV !== 'production') {
+  } else if (process.env.NODE_ENV !== 'production') { // 既不是数组也不是对象报错
     warn(
       `Invalid value for option "props": expected an Array or an Object, ` +
       `but got ${toRawType(props)}.`,
       vm
     )
   }
-  //都格式化为{}形式
+  //都格式化为{}形式, { type: xxx }的形式
   options.props = res
 }
 
@@ -340,27 +364,72 @@ const ChildComponent = {
 }
 */
 function normalizeInject (options: Object, vm: ?Component) {
+  // 拿到用户的.inject
   const inject = options.inject
   if (!inject) return
+  // {}
   const normalized = options.inject = {}
+  // inject是数组的情况
+  // 子组件
+  // const ChildComponent = {
+  //   template: '<div>child component</div>',
+  //   created: function () {
+  //     // 这里的 data 是父组件注入进来的
+  //     console.log(this.data)
+  //   },
+  //   inject: ['data']
+  // }
+
+  // // 父组件
+  // var vm = new Vue({
+  //   el: '#app',
+  //   // 向子组件提供数据
+  //   provide: {
+  //     data: 'test provide'
+  //   },
+  //   components: {
+  //     ChildComponent
+  //   }
+  // })
   if (Array.isArray(inject)) {
     for (let i = 0; i < inject.length; i++) {
+//     inject: {
+//   'data1': { from: 'data1' },
+//   'data2': { from: 'data2' }
+// }
       normalized[inject[i]] = { from: inject[i] }
     }
-  } else if (isPlainObject(inject)) {
-    for (const key in inject) {
+  } else if (isPlainObject(inject)) { // inject是对象的情况
+    // 子组件
+    // const ChildComponent = {
+    //   template: '<div>child component</div>',
+    //   created: function () {
+    //     console.log(this.d)
+    //   },
+    //   // 对象的语法类似于允许我们为注入的数据声明一个别名
+    //   inject: {
+    //     d: 'data'
+    //   }
+    // }
+    for (const key in inject) { 
       const val = inject[key]
       normalized[key] = isPlainObject(val)
         ? extend({ from: key }, val)
         : { from: val }
+//     inject: {
+//   'data1': { from: 'data1' },
+//   'd2': { from: 'data2' },
+//   'data3': { from: 'data3', someProperty: 'someValue' }
+// }
     }
-  } else if (process.env.NODE_ENV !== 'production') {
+  } else if (process.env.NODE_ENV !== 'production') { // 报错
     warn(
       `Invalid value for option "inject": expected an Array or an Object, ` +
       `but got ${toRawType(inject)}.`,
       vm
     )
   }
+  // 最后将ineject 规范化为 data1: { from: xxx}
 }
 
 /**
@@ -386,15 +455,36 @@ function normalizeInject (options: Object, vm: ?Component) {
 })
  */
 function normalizeDirectives (options: Object) {
+  <div id="app" v-test1 v-test2>{{test}}</div>
+
+// var vm = new Vue({
+//   el: '#app',
+//   data: {
+//     test: 1
+//   },
+//   // 注册两个局部指令
+//   directives: {
+//     test1: {
+//       bind: function () {
+//         console.log('v-test1')
+//       }
+//     },
+//     test2: function () {
+//       console.log('v-test2')
+//     }
+//   }
+// })
   const dirs = options.directives
   if (dirs) {
     for (const key in dirs) {
       const def = dirs[key]
+      // 如果指令是函数规范化为对象
       if (typeof def === 'function') {
         dirs[key] = { bind: def, update: def }
       }
     }
   }
+// 规范化为 {test1: {bind(){}, update(){}}}
 }
 
 function assertObjectType (name: string, value: any, vm: ?Component) {
@@ -449,26 +539,68 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 //   }
 
 **/
+
+// vm.$options = mergeOptions(
+//   // resolveConstructorOptions(vm.constructor)
+//   {
+//     components: {
+//       KeepAlive
+//       Transition,
+//       TransitionGroup
+//     },
+//     directives:{
+//       model,
+//       show
+//     },
+//     filters: Object.create(null),
+//     _base: Vue
+//   },
+//   // options || {}
+//   {
+//     el: '#app',
+//     data: {
+//       test: 1
+//     }
+//   },
+//   vm
+// )
 export function mergeOptions (
-  parent: Object,
-  child: Object,
-  vm?: Component
+  parent: Object, // 父options自带的options
+  child: Object, // 子options用户传入的
+  vm?: Component // 当前实例
 ): Object {
   if (process.env.NODE_ENV !== 'production') {
+    // 1. 检查组件子类options是不是个组件，1.1检查options.components里的命名是否规范，1.2检查是不是内置的标签命名
     checkComponents(child)
   }
-
+    //2.  如果这个options是个方法，通过方法的.options拿到用户的options
   if (typeof child === 'function') {
     child = child.options
   }
   //规范化
-  normalizeProps(child, vm)
-  normalizeInject(child, vm)
-  normalizeDirectives(child)
+  // 3. props的多种写法
+  // const ChildComponent = {
+  //   props: ['someData']
+  // }
+  // const ChildComponent = {
+  //   props: {
+  //     someData: {
+  //       type: Number,
+  //       default: 0
+  //     }
+  //   }
+  // }
+  normalizeProps(child, vm) // {type: xxx}
+  normalizeInject(child, vm) // {from: xxx}
+  normalizeDirectives(child) // {bind: xxx, update:xxx}
+  
+  // 用户的extend
   const extendsFrom = child.extends
   if (extendsFrom) {
+    // 将子extend传入作为options进行进行
     parent = mergeOptions(parent, extendsFrom, vm)
   }
+  // 用户的mixins
   if (child.mixins) {
     for (let i = 0, l = child.mixins.length; i < l; i++) {
       parent = mergeOptions(parent, child.mixins[i], vm)
@@ -488,6 +620,7 @@ export function mergeOptions (
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
   }
+  // 拿到规范化后的options
   return options
 }
 
