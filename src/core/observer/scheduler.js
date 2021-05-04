@@ -95,6 +95,8 @@ function flushSchedulerQueue () {
 
 function callUpdatedHooks (queue) {
   let i = queue.length
+//   updatedQueue 是更新了的 wathcer 数组，那么在 callUpdatedHooks 函数中，
+//  它对这些数组做遍历，只有满足当前 watcher 为 vm._watcher 以及组件已经 mounted 这两个条件，才会执行 updated 钩子函数
   while (i--) {
     const watcher = queue[i]
     const vm = watcher.vm
