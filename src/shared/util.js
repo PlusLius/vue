@@ -4,10 +4,11 @@ export const emptyObject = Object.freeze({})
 
 // these helpers produces better vm code in JS engines due to their
 // explicitness and function inlining
+// 判断是不是undefined，只要这个值时undefined或者null就行
 export function isUndef (v: any): boolean %checks {
   return v === undefined || v === null
 }
-
+// 判断一个值是否定义了，判断它不是undefined和null就是定义了
 export function isDef (v: any): boolean %checks {
   return v !== undefined && v !== null
 }
@@ -313,11 +314,14 @@ export function looseIndexOf (arr: Array<mixed>, val: mixed): number {
 /**
  * Ensure a function is called only once.
  */
+// 保证一个函数只调用一次
 export function once (fn: Function): Function {
   let called = false
   return function () {
+    // 没有调用过
     if (!called) {
       called = true
+      // 调用一次
       fn.apply(this, arguments)
     }
   }
