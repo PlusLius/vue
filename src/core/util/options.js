@@ -733,6 +733,8 @@ export function mergeOptions (
  * This function is used because child instances need access
  * to assets defined in its ancestor chain.
  */
+// components, directive, filter都属于asset = options[type][id]
+
 export function resolveAsset (
   options: Object,
   type: string,
@@ -743,15 +745,21 @@ export function resolveAsset (
   if (typeof id !== 'string') {
     return
   }
+  // 先通过 const assets = options[type] 拿到 assets，然后再尝试拿 assets[id]
   const assets = options[type]
   // check local registration variations first
+  // 这里有个顺序，先直接使用 id 拿，如果不存在
   if (hasOwn(assets, id)) return assets[id]
+  // 则把 id 变成驼峰的形式再拿
   const camelizedId = camelize(id)
+  // 如果仍然不存在则在驼峰的基础上
   if (hasOwn(assets, camelizedId)) return assets[camelizedId]
+  // 把首字母再变成大写的形式再拿
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
   // fallback to prototype chain
   const res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
+   // 如果仍然拿不到则报错。
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {
     warn(
       'Failed to resolve ' + type.slice(0, -1) + ': ' + id,
