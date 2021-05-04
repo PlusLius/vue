@@ -130,7 +130,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     }
   }
 }
-
+// beforeMount 钩子函数发生在 mount，也就是 DOM 挂载之前，它的调用时机是在 mountComponent 函数中
 export function mountComponent (
   vm: Component,
   el: ?Element,
@@ -201,7 +201,10 @@ export function mountComponent (
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+  // 手动调用mounted,将自动挂载实例
+  // vm.$vnode 如果为 null，则表明这不是一次组件的初始化过程，而是我们通过外部 new Vue 初始化过程。
   if (vm.$vnode == null) {
+    //  vm._update() 把 VNode patch 到真实 DOM 后，执行 mounted 钩子。
     vm._isMounted = true
     callHook(vm, 'mounted')
   }
