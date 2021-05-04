@@ -50,9 +50,13 @@ export default class Watcher {
     isRenderWatcher?: boolean
   ) {
     this.vm = vm
+    // 把当前 watcher 的实例赋值给 vm._watcher，
     if (isRenderWatcher) {
       vm._watcher = this
     }
+    // 同时，还把当前 wathcer 实例 push 到 vm._watchers 中，
+    // vm._watcher 是专门用来监听 vm 上数据变化然后重新渲染的，所以它是一个渲染相关的 watcher，
+    // 因此在 callUpdatedHooks 函数中，只有 vm._watcher 的回调执行完毕后，才会执行 updated 钩子函数。
     vm._watchers.push(this)
     // options
     if (options) {
