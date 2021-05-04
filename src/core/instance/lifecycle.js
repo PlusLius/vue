@@ -192,7 +192,9 @@ export function mountComponent (
   //函数最后判断为根节点的时候设置 vm._isMounted 为 true， 表示这个实例已经挂载了，同时执行 mounted 钩子函数。 这里注意 vm.$vnode 表示 Vue 实例的父虚拟 Node，所以它为 Null 则表示当前是根 Vue 的实例
   new Watcher(vm, updateComponent, noop, {
     before () {
+      // 也就是在组件已经 mounted 之后，才会去调用这个钩子函数
       if (vm._isMounted) {
+        // beforeUpdate 的执行时机是在渲染 Watcher 的 before 函数中
         callHook(vm, 'beforeUpdate')
       }
     }
