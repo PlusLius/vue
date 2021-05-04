@@ -15,7 +15,7 @@ type Attribute = {
 
 /**
  * Parse a single-file component (*.vue) file into an SFC Descriptor Object.
-  将单文件组件html解析成SFC对象
+  将单文件组件html，css,js,自定义的标签解析成SFC对象
  */
 export function parseComponent (
   content: string,
