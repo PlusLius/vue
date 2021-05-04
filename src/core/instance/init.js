@@ -73,6 +73,7 @@ export function initMixin (Vue: Class<Component>) {
                       // }
         vm // vm实例
       )
+      //vm.$options拿到规范化父子options合并后的一个options
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
