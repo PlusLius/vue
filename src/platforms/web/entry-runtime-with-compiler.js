@@ -22,17 +22,18 @@ Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 拿到el
   el = el && query(el)
 
   /* istanbul ignore if */
-  //el不准挂载body和html上
+  // el不准挂载body和html上
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
     )
     return this
   }
-
+  // 在拿$options
   const options = this.$options
   // resolve template/el and convert to render function
   //如果没有传入render
@@ -51,7 +52,7 @@ Vue.prototype.$mount = function (
             )
           }
         }
-      } else if (template.nodeType) {
+      } else if (template.nodeType) { // 如果模版时html标签
         template = template.innerHTML
       } else {
         if (process.env.NODE_ENV !== 'production') {
@@ -59,11 +60,11 @@ Vue.prototype.$mount = function (
         }
         return this
       }
-    } else if (el) {
+    } else if (el) { // 如果el存在
         //如果没有template就拿到当前元素里面的内容
       template = getOuterHTML(el)
     }
-    if (template) {
+    if (template) { // 最终都会拿到template存的模版，否则就报错了
       /* istanbul ignore if */
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
@@ -76,8 +77,8 @@ Vue.prototype.$mount = function (
         delimiters: options.delimiters,
         comments: options.comments
       }, this)
-      options.render = render
-      options.staticRenderFns = staticRenderFns
+      options.render = render // 拿到render方法
+      options.staticRenderFns = staticRenderFns // 和静态render方法
 
       /* istanbul ignore if */
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
