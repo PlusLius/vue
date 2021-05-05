@@ -25,6 +25,8 @@ const ALWAYS_NORMALIZE = 2
 
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
+// createElement实际是对_createElement的封装参数更加灵活
+// 在处理这些参数后，调用真正创建 VNode 的函数 _createElement
 export function createElement (
   context: Component,
   tag: any,
@@ -41,9 +43,23 @@ export function createElement (
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
+  // 真正生成虚拟dom的方法
   return _createElement(context, tag, data, children, normalizationType)
 }
-
+// _createElement 方法有 5 个参数， 
+// context 表示 VNode 的上下文环境，它是 Component 类型；实际就是当前的vm实例
+// tag 表示标签，它可以是一个字符串，也可以是一个 Component；
+// data 表示 VNode 的数据，它是一个 VNodeData 类型
+// children 表示当前 VNode 的子节点，它是任意类型的，它接下来需要被规范为标准的 VNode 数组；
+// normalizationType 表示子节点规范的类型，类型不同规范的方法也就不一样，看传入的是true还是false
+// 它主要是参考 render 函数是编译生成的还是用户手写的。
+//   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
+//   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
+//   return createElement('div', {
+//      attrs: {
+//         id: 'app'
+//       },
+//   }, this.message)
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,
