@@ -128,6 +128,7 @@ export function renderMixin (Vue: Class<Component>) {
       vnode = createEmptyVNode()
     }
     // set parent
+//     vnode 的 parent 指向了 _parentVnode，也就是 vm.$vnode，它们是一种父子的关系。
     vnode.parent = _parentVnode
     return vnode
   }
