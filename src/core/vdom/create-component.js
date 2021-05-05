@@ -34,6 +34,7 @@ import {
 
 // inline hooks to be invoked on component VNodes during patch 
 // 组件内部钩子,创建组件的会继承父类实例，调用组件钩子函数，组件实例new Vue这个过程中会继续递归创建其他组件，最终返回一个vnode，然后子组件调用$mount去生成dom
+// 在 VNode 执行 patch 的过程中执行相关的钩子函数
 const componentVNodeHooks = {
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
     if (
@@ -147,11 +148,13 @@ export function createComponent (
 //   这样就把 Vue 上的一些 option 扩展到了 vm.$options 上，所以我们也就能通过 vm.$options._base 拿到 Vue 这个构造函数了。
 //   mergeOptions 现在只需要理解它的功能是把 Vue 构造函数的 options 和用户传入的 options 做一层合并，到 vm.$options 上。
 //   Sub 继续 Vue这个类
+//   Ctor = Sub子类
     Ctor = baseCtor.extend(Ctor)
   }
 
   // if at this stage it's not a constructor or an async component factory,
   // reject.
+// 如果不是子类构造函数报错
   if (typeof Ctor !== 'function') {
     if (process.env.NODE_ENV !== 'production') {
       warn(`Invalid Component definition: ${String(Ctor)}`, context)
@@ -218,9 +221,12 @@ export function createComponent (
 
   // install component management hooks onto the placeholder node
    // 创建组件的时候会执行组件钩子
+// 安装组件钩子函数
   installComponentHooks(data)
 
   // return a placeholder vnode
+// 最后一步非常简单，通过 new VNode 实例化一个 vnode 并返回。
+// 需要注意的是和普通元素节点的 vnode 不同，组件的 vnode 是没有 children 的，这点很关键
   const name = Ctor.options.name || tag
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
@@ -236,7 +242,7 @@ export function createComponent (
   if (__WEEX__ && isRecyclableComponent(vnode)) {
     return renderRecyclableComponentTemplate(vnode)
   }
-
+  // 返回vnode
   return vnode
 }
 
@@ -259,7 +265,7 @@ export function createComponentInstanceForVnode (
   // new Vue(options)
   return new vnode.componentOptions.Ctor(options)
 }
-
+// 整个 installComponentHooks 的过程就是把 componentVNodeHooks 的钩子函数合并到 data.hook 中
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
   for (let i = 0; i < hooksToMerge.length; i++) {
@@ -271,7 +277,8 @@ function installComponentHooks (data: VNodeData) {
     }
   }
 }
-
+// 把 componentVNodeHooks 的钩子函数合并到 data.hook 中
+// 那么通过执行 mergeHook 函数做合并，这个逻辑很简单，就是在最终执行的时候，依次执行这两个钩子函数即可。
 function mergeHook (f1: any, f2: any): Function {
   const merged = (a, b) => {
     // flow complains about extra args which is why we use any
