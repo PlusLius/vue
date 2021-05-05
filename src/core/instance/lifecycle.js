@@ -135,11 +135,13 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 // beforeMount 钩子函数发生在 mount，也就是 DOM 挂载之前，它的调用时机是在 mountComponent 函数中
+// 挂载组件就是做2个事情，生成虚拟dom,更新成真实dom
 export function mountComponent (
   vm: Component,
   el: ?Element,
   hydrating?: boolean
 ): Component {
+  // 在 vue实例上挂载el,$options上没有render方法报警告
   vm.$el = el
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
@@ -161,8 +163,9 @@ export function mountComponent (
       }
     }
   }
+  // 调用钩子函数
   callHook(vm, 'beforeMount')
-
+   // 将组件更新包装成一个方法
   let updateComponent
   /* istanbul ignore if */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -184,6 +187,7 @@ export function mountComponent (
     }
   } else {
     updateComponent = () => {
+      // _render生成虚拟dom, _update生成更新后的dom
       vm._update(vm._render(), hydrating)
     }
   }
@@ -210,8 +214,10 @@ export function mountComponent (
   // mounted is called for render-created child components in its inserted hook
   // 手动调用mounted,将自动挂载实例
   // vm.$vnode 如果为 null，则表明这不是一次组件的初始化过程，而是我们通过外部 new Vue 初始化过程。
+  // vm.$vnode 表示 Vue 实例的父虚拟 Node，所以它为 Null 则表示当前是根 Vue 的实例
   if (vm.$vnode == null) {
     //  vm._update() 把 VNode patch 到真实 DOM 后，执行 mounted 钩子。
+    // 记录是否已经挂载过该实例
     vm._isMounted = true
     callHook(vm, 'mounted')
   }
@@ -328,10 +334,12 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
+  // 调用生命周期也是拿到的$options里面的钩子队列
   const handlers = vm.$options[hook]
   if (handlers) {
     for (let i = 0, j = handlers.length; i < j; i++) {
       try {
+        // 将钩子方法全部执行
         handlers[i].call(vm)
       } catch (e) {
         handleError(e, vm, `${hook} hook`)
@@ -339,6 +347,7 @@ export function callHook (vm: Component, hook: string) {
     }
   }
   if (vm._hasHookEvent) {
+    // 派发钩子事件
     vm.$emit('hook:' + hook)
   }
   popTarget()
