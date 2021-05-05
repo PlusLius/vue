@@ -70,6 +70,7 @@ export default class VNode {
   }
 }
 
+// createEmptyVNode 都是new VNode
 export const createEmptyVNode = (text: string = '') => {
   const node = new VNode()
   node.text = text
@@ -77,6 +78,7 @@ export const createEmptyVNode = (text: string = '') => {
   return node
 }
 
+// createTextVNode实际上也是new VNode
 export function createTextVNode (val: string | number) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
