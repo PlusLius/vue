@@ -146,7 +146,7 @@ export function createComponent (
     
 //   这样就把 Vue 上的一些 option 扩展到了 vm.$options 上，所以我们也就能通过 vm.$options._base 拿到 Vue 这个构造函数了。
 //   mergeOptions 现在只需要理解它的功能是把 Vue 构造函数的 options 和用户传入的 options 做一层合并，到 vm.$options 上。
-
+//   Sub 继续 Vue这个类
     Ctor = baseCtor.extend(Ctor)
   }
 
