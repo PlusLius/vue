@@ -195,7 +195,7 @@ export function genFor (
       `return ${(altGen || genElement)(el, state)}` +
     '})'
 }
-
+// 然后在 codegen 的阶段，会在 genData 函数中根据 AST 元素节点上的 events 和 nativeEvents 生成 data 数据
 export function genData (el: ASTElement, state: CodegenState): string {
   let data = '{'
 
