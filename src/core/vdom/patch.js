@@ -19,7 +19,7 @@ import { activeInstance } from '../instance/lifecycle'
 import { isTextInputType } from 'web/util/element'
 
 import {
-  warn,
+  warn,f
   isDef,
   isUndef,
   isTrue,
@@ -216,9 +216,12 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
   // createComponent 方法目的是尝试创建子组件，
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
+//     如果 vnode 是一个组件 VNode
     if (isDef(i)) {
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
+//       ，那么条件会满足，并且得到 i 就是 init 钩子函数
       if (isDef(i = i.hook) && isDef(i = i.init)) {
+//         在创建组件 VNode 的时候合并钩子函数中就包含 init 钩子函数
         i(vnode, false /* hydrating */)
       }
       // after calling the init hook, if the vnode is a child component
