@@ -139,6 +139,12 @@ export function _createElement (
     }
   } else { //  如果是 tag 一个 Component 类型，则直接调用 createComponent 创建一个组件类型的 VNode 节点。
     // direct component options / constructor
+//     var app = new Vue({
+//       el: '#app',
+//       // 这里的 h 是 createElement 方法
+//       render: h => h(App)
+//     })
+// 传入的是一个 App 对象，它本质上是一个 Component 类型，那么它会走到上述代码的 else 逻辑，直接通过 createComponent 方法来创建 vnode
     vnode = createComponent(tag, data, context, children)
   }
   if (Array.isArray(vnode)) {
