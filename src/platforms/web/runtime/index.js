@@ -51,6 +51,7 @@ extend(Vue.options.components, platformComponents)
 
 // install platform patch function
 // 虚拟dom进行patch比较
+// 根据平台不同server端不需要生成真实dom
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
