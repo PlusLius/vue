@@ -48,13 +48,15 @@ const modifierCode: { [key: string]: string } = {
   middle: genGuard(`'button' in $event && $event.button !== 1`),
   right: genGuard(`'button' in $event && $event.button !== 2`)
 }
-
+// 对于这两个属性，会调用 genHandlers 函数
+// genHandlers 方法遍历事件对象 events，对同一个事件名称的事件调用 genHandler(name, events[name]) 方法，
 export function genHandlers (
   events: ASTElementHandlers,
   isNative: boolean,
   warn: Function
 ): string {
   let res = isNative ? 'nativeOn:{' : 'on:{'
+  // ，首先先判断如果 handler 是一个数组，就遍历它然后递归调用 genHandler 方法并拼接结果
   for (const name in events) {
     res += `"${name}":${genHandler(name, events[name])},`
   }
@@ -78,7 +80,8 @@ function genWeexHandler (params: Array<any>, handlerCode: string) {
     `params:${JSON.stringify(bindings)}\n` +
     '}'
 }
-
+// 就遍历它然后递归调用 genHandler 方法并拼接结果
+// 然后判断 hanlder.value 是一个函数的调用路径还是一个函数表达式， 
 function genHandler (
   name: string,
   handler: ASTElementHandler | Array<ASTElementHandler>
@@ -90,20 +93,38 @@ function genHandler (
   if (Array.isArray(handler)) {
     return `[${handler.map(handler => genHandler(name, handler)).join(',')}]`
   }
-
+ // 然后判断 hanlder.value 是一个函数的调用路径还是一个函数表达式， 
   const isMethodPath = simplePathRE.test(handler.value)
   const isFunctionExpression = fnExpRE.test(handler.value)
-
+//   接着对 modifiers 做判断，对于没有 modifiers 的情况，
   if (!handler.modifiers) {
     if (isMethodPath || isFunctionExpression) {
+      //，就根据 handler.value 不同情况处理，要么直接返回
       return handler.value
     }
     /* istanbul ignore if */
     if (__WEEX__ && handler.params) {
       return genWeexHandler(handler.params, handler.value)
     }
+    // 要么返回一个函数包裹的表达式；
     return `function($event){${handler.value}}` // inline statement
   } else {
+    // ；对于有 modifiers 的情况，则对各种不同的 modifer 情况做不同处理，添加相应的代码串。
+    // {
+    //   on: {"select": selectHandler},
+    //   nativeOn: {"click": function($event) {
+    //       $event.preventDefault();
+    //       return clickHandler($event)
+    //     }
+    //   }
+    // }
+    // 子组件生成的 data 串为：
+    // {
+    //   on: {"click": function($event) {
+    //       clickHandler($event)
+    //     }
+    //   }
+    // }
     let code = ''
     let genModifierCode = ''
     const keys = []
