@@ -62,6 +62,8 @@ export function renderMixin (Vue: Class<Component>) {
 
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
+//     这里的 _parentVnode 就是当前组件的父 VNode
+//     而 render 函数生成的 vnode 当前组件的渲染 vnode
     const { render, _parentVnode } = vm.$options
 
     // reset _rendered flag on slots for duplicate slot check
@@ -78,6 +80,7 @@ export function renderMixin (Vue: Class<Component>) {
 
     // set parent vnode. this allows render functions to have access
     // to the data on the placeholder node.
+//     vnode 的 parent 指向了 _parentVnode，也就是 vm.$vnode，它们是一种父子的关系。
     vm.$vnode = _parentVnode
     // render self
     let vnode
