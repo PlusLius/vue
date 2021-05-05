@@ -115,5 +115,6 @@ function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNo
       }
     }
   }
+  // 最后返回的是一个vnode array
   return res
 }
