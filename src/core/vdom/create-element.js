@@ -62,6 +62,7 @@ export function createElement (
 //   }, this.message)
 // createElement 创建 VNode 的过程，每个 VNode 有 children，
 // children 每个元素也是一个 VNode，这样就形成了一个 VNode Tree，它很好的描述了我们的 DOM Tree。
+// normalizeChildren 规范化的过程实际就是创建子vnode的过程
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,
