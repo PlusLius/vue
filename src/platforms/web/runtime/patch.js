@@ -2,7 +2,7 @@
 
 import * as nodeOps from 'web/runtime/node-ops'
 import { createPatchFunction } from 'core/vdom/patch'
-import baseModules from 'core/vdom/modules/index'
+import baseModules from 'core/vdom/modules/index' // 提供了ref和一些钩子函数指令
 import platformModules from 'web/runtime/modules/index'
 
 // the directive module should be applied last, after all
