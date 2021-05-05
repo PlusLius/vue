@@ -141,6 +141,10 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
     }
 
     vnode.isRootInsert = !nested // for transition enter check
+//       渲染成 DOM 的函数是 createElm，注意这里我们只传了 2 个参数，所以对应的 parentElm 是 undefined
+//       这里我们传入的 vnode 是组件渲染的 vnode，也就是我们之前说的 vm._vnode，如果组件的根节点是个普通元素，那么 vm._vnode 也是普通的 vnode，
+//       这里 createComponent(vnode, insertedVnodeQueue, parentElm, refElm) 的返回值是 false。
+//       先创建一个父节点占位符，然后再遍历所有子 VNode 递归调用 createElm，在遍历的过程中，如果遇到子 VNode 是一个组件的 VNode，则重复本节开始的过程，这样通过一个递归的方式就可以完整地构建了整个组件树。
     if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) { // createComponent 方法目的是尝试创建子组件，在当前这个 case 下它的返回值为 false；
       return
     }
@@ -732,7 +736,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
     }
-
+//     完成组件的整个 patch 过程后，最后执行 insert(parentElm, vnode.elm, refElm) 完成组件的 DOM 插入，如果组件 patch 过程中又创建了子组件，那么DOM 的插入顺序是先子后父。
     let isInitialPatch = false
     const insertedVnodeQueue = []
 
