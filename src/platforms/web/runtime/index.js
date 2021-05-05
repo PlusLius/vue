@@ -59,7 +59,7 @@ Vue.prototype.$mount = function (
   hydrating?: boolean
 ): Component {
   el = el && inBrowser ? query(el) : undefined
-  //$mount调用mountComponent进行挂载
+  //$mount调用mountComponent进行挂载，mountComponent接收当前Vue实例，当前el，还有一个服务端渲染参数
   return mountComponent(this, el, hydrating)
 }
 
