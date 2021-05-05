@@ -52,6 +52,10 @@ const componentVNodeHooks = {
         activeInstance
       )
 //       ，然后调用 $mount 方法挂载子组件
+//       componentVNodeHooks 的 init 钩子函数，在完成实例化的 _init 后，接着会执行 
+//       child.$mount(hydrating ? vnode.elm : undefined, hydrating) 。这里 hydrating 为 true 一般是服务端渲染的情况，
+//       我们只考虑客户端渲染，所以这里 $mount 相当于执行 child.$mount(undefined, false)，
+//       它最终会调用 mountComponent 方法，进而执行 vm._render() 方法：
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
