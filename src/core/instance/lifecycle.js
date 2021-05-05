@@ -56,6 +56,8 @@ export function lifecycleMixin (Vue: Class<Component>) {
     const prevVnode = vm._vnode
     const prevActiveInstance = activeInstance
     activeInstance = vm
+//     首先 vm._vnode = vnode 的逻辑，这个 vnode 是通过 vm._render() 返回的组件渲染 VNode
+//     vm._vnode 和 vm.$vnode 的关系就是一种父子关系，用代码表达就是 vm._vnode.parent === vm.$vnode
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
@@ -84,6 +86,13 @@ export function lifecycleMixin (Vue: Class<Component>) {
       // 数据更新时渲染
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
+//     这个 activeInstance 作用就是保持当前上下文的 Vue 实例，它是在 lifecycle 模块的全局变量，
+//     定义是 export let activeInstance: any = null，
+//     并且在之前我们调用 createComponentInstanceForVnode 方法的时候从 lifecycle 模块获取，
+//     并且作为参数传入的。因为实际上 JavaScript 是一个单线程，Vue 整个初始化是一个深度遍历的过程，
+//     在实例化子组件的过程中，它需要知道当前上下文的 Vue 实例是什么，并把它作为子组件的父 Vue 实例。
+//     之前我们提到过对子组件的实例化过程先会调用 initInternalComponent(vm, options) 合并 options，把 parent 存储在 vm.$options 中，
+//     在 $mount 之前会调用 initLifecycle(vm) 方法
     activeInstance = prevActiveInstance
     // update __vue__ reference
     if (prevEl) {
