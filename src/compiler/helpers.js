@@ -43,7 +43,32 @@ export function addDirective (
   (el.directives || (el.directives = [])).push({ name, rawName, value, arg, modifiers })
   el.plain = false
 }
+// addHandler 函数看起来长，实际上就做了 3 件事情，
+// 首先根据 modifier 修饰符对事件名 name 做处理，
+// 接着根据 modifier.native 判断是一个纯原生事件还是普通事件，分别对应 el.nativeEvents 和 el.events
+// 最后按照 name 对事件做归类，并把回调函数的字符串保留到对应的事件中
+// el.events = {
+//   select: {
+//     value: 'selectHandler'
+//   }
+// }
 
+// el.nativeEvents = {
+//   click: {
+//     value: 'clickHandler',
+//     modifiers: {
+//       prevent: true
+//     }
+//   }
+// }
+
+// 子组件的 button 节点生成的 el.events 如下：
+
+// el.events = {
+//   click: {
+//     value: 'clickHandler($event)'
+//   }
+}
 export function addHandler (
   el: ASTElement,
   name: string,
@@ -66,6 +91,7 @@ export function addHandler (
   }
 
   // check capture modifier
+  // 首先根据 modifier 修饰符对事件名 name 做处理，
   if (modifiers.capture) {
     delete modifiers.capture
     name = '!' + name // mark the event as captured
@@ -91,7 +117,7 @@ export function addHandler (
       name = 'mouseup'
     }
   }
-
+  // 接着根据 modifier.native 判断是一个纯原生事件还是普通事件，分别对应 el.nativeEvents 和 el.events
   let events
   if (modifiers.native) {
     delete modifiers.native
@@ -106,7 +132,7 @@ export function addHandler (
   if (modifiers !== emptyObject) {
     newHandler.modifiers = modifiers
   }
-
+  // 最后按照 name 对事件做归类，并把回调函数的字符串保留到对应的事件中。
   const handlers = events[name]
   /* istanbul ignore if */
   if (Array.isArray(handlers)) {
