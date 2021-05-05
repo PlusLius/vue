@@ -509,7 +509,7 @@ function processComponent (el) {
     el.inlineTemplate = true
   }
 }
-
+// 在对标签属性的处理过程中，判断如果是指令，首先通过 parseModifiers 解析出修饰符，然后判断如果事件的指令，则执行 addHandler(el, name, value, modifiers, false, warn) 
 function processAttrs (el) {
   const list = el.attrsList
   let i, l, name, rawName, value, modifiers, isProp
@@ -520,6 +520,7 @@ function processAttrs (el) {
       // mark element as dynamic
       el.hasBindings = true
       // modifiers
+      // 首先通过 parseModifiers 解析出修饰符，
       modifiers = parseModifiers(name)
       if (modifiers) {
         name = name.replace(modifierRE, '')
@@ -538,6 +539,7 @@ function processAttrs (el) {
             name = camelize(name)
           }
           if (modifiers.sync) {
+            // 然后判断如果事件的指令，则执行 addHandler(el, name, value, modifiers, false, warn) 
             addHandler(
               el,
               `update:${camelize(name)}`,
