@@ -31,7 +31,7 @@ export function initRender (vm: Component) {
   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
   // normalization is always applied for the public version, used in
   // user-written render functions.
-  //给开发者使用的方法
+  //给开发者使用的方法，在写render方法的时候传入的方法，最终还是调用的createElement来生成虚拟dom
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
   // $attrs & $listeners are exposed for easier HOC creation.
@@ -82,6 +82,16 @@ export function renderMixin (Vue: Class<Component>) {
     // render self
     let vnode
     try {
+//       render: function (createElement) {
+//         return createElement('div', {
+//            attrs: {
+//               id: 'app'
+//             },
+//         }, this.message)
+//       }
+//       render方法的调用，将执行环境指向vue._renderProxy，传入虚拟dom方法
+//       最终生成vnode
+//      vm._render 最终是通过执行 createElement 方法并返回的是 vnode，它是一个虚拟 Node。Vue
       vnode = render.call(vm._renderProxy, vm.$createElement)
     } catch (e) {
       handleError(e, vm, `render`)
