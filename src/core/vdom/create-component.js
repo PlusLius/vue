@@ -102,6 +102,10 @@ const componentVNodeHooks = {
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
 // 创建组件返回vnode
+// 针对组件渲染这个 case 主要就 3 个关键步骤：
+// 构造子类构造函数
+// ，安装组件钩子函数
+// 和实例化 vnode
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -112,11 +116,37 @@ export function createComponent (
   if (isUndef(Ctor)) {
     return
   }
-
+  //   Vue.options._base = Vue
+  // baseCtor = Vue
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
   if (isObject(Ctor)) {
+//     import HelloWorld from './components/HelloWorld'
+
+//       export default {
+//         name: 'app',
+//         components: {
+//           HelloWorld
+//         }
+//       }
+//     Ctor = {
+//       name: 'app',
+//       components: {
+//         HelloWorld
+//       }
+//     }
+    // Ctor = Vue.extend(Ctor)
+    
+//   vm.$options = mergeOptions(
+//   resolveConstructorOptions(vm.constructor),
+//   options || {},
+//   vm)
+    
+    
+//   这样就把 Vue 上的一些 option 扩展到了 vm.$options 上，所以我们也就能通过 vm.$options._base 拿到 Vue 这个构造函数了。
+//   mergeOptions 现在只需要理解它的功能是把 Vue 构造函数的 options 和用户传入的 options 做一层合并，到 vm.$options 上。
+
     Ctor = baseCtor.extend(Ctor)
   }
 
