@@ -25,14 +25,16 @@ export function initLifecycle (vm: Component) {
   const options = vm.$options
 
   // locate first non-abstract parent
+//     可以看到 vm.$parent 就是用来保留当前 vm 的父实例，
   let parent = options.parent
+//   ，并且通过 parent.$children.push(vm) 来把当前的 vm 存储到父实例的 $children 中。
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
     }
     parent.$children.push(vm)
   }
-
+//   可以看到 vm.$parent 就是用来保留当前 vm 的父实例，
   vm.$parent = parent
   vm.$root = parent ? parent.$root : vm
 
@@ -84,6 +86,12 @@ export function lifecycleMixin (Vue: Class<Component>) {
     } else {
       // updates
       // 数据更新时渲染
+//       在 vm._update 的过程中，把当前的 vm 赋值给 activeInstance，
+//       同时通过 const prevActiveInstance = activeInstance 用 prevActiveInstance 保留上一次的 activeInstance。
+//       实际上，prevActiveInstance 和当前的 vm 是一个父子关系，当一个 vm 实例完成它的所有子树的 patch 或者 update 过程后，
+//       activeInstance 会回到它的父实例，这样就完美地保证了 createComponentInstanceForVnode 整个深度遍历过程中，
+//       我们在实例化子组件的时候能传入当前子组件的父 Vue 实例，并在 _init 的过程中，通过 vm.$parent 把这个父子关系保
+//       负责渲染成 DOM 的函数是 createElm，注意这里我们只传了 2 个参数，所以对应的 parentElm 是 undefined
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
 //     这个 activeInstance 作用就是保持当前上下文的 Vue 实例，它是在 lifecycle 模块的全局变量，
