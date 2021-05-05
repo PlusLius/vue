@@ -30,10 +30,12 @@ export function initMixin (Vue: Class<Component>) {
     // a flag to avoid this being observed
     vm._isVue = true
     // merge options
+//     这里首先是合并 options 的过程有变化，_isComponent 为 true，
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
+//       所以走到了 initInternalComponent 过程
       initInternalComponent(vm, options)
     } else {
       /**
@@ -106,16 +108,10 @@ export function initMixin (Vue: Class<Component>) {
   }
 }
 
-
-
-
-
-
-
-
-
-//其他方法先不看
+// 创建子组件时调用
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
+//   opts.parent = options.parent、opts._parentVnode = parentVnode，
+//   它们是把之前我们通过 createComponentInstanceForVnode 函数传入的几个参数合并到内部的选项 $options 里了。
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
   const parentVnode = options._parentVnode
