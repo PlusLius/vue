@@ -60,6 +60,8 @@ export function createElement (
 //         id: 'app'
 //       },
 //   }, this.message)
+// createElement 创建 VNode 的过程，每个 VNode 有 children，
+// children 每个元素也是一个 VNode，这样就形成了一个 VNode Tree，它很好的描述了我们的 DOM Tree。
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,
@@ -104,24 +106,28 @@ export function _createElement (
     children.length = 0
   }
   if (normalizationType === ALWAYS_NORMALIZE) {
+    // 如果是多层嵌套的情况，使用normalizeChildren创建子vnode
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
+    // 如果只有一层嵌套的情况使用simpleNormalizeChildren创建子vnode
     children = simpleNormalizeChildren(children)
   }
+ // 当统一转成vnode类型后
+// 接下来会去创建vnode实例
   let vnode, ns
-  if (typeof tag === 'string') {
+  if (typeof tag === 'string') { // 这里先对 tag 做判断，如果是 string 类型
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
-    if (config.isReservedTag(tag)) {
+    if (config.isReservedTag(tag)) { // 则接着判断如果是内置的一些节点，则直接创建一个普通 VNode，
       // platform built-in elements
       vnode = new VNode(
         config.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
       )
-    } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+    } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) { // ，如果是为已注册的组件名，则通过 createComponent 创建一个组件类型的 VNode，
       // component
       vnode = createComponent(Ctor, data, context, children, tag)
-    } else {
+    } else { // 则创建一个未知的标签的 VNode。
       // unknown or unlisted namespaced elements
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
@@ -130,7 +136,7 @@ export function _createElement (
         undefined, undefined, context
       )
     }
-  } else {
+  } else { //  如果是 tag 一个 Component 类型，则直接调用 createComponent 创建一个组件类型的 VNode 节点。
     // direct component options / constructor
     vnode = createComponent(tag, data, context, children)
   }
