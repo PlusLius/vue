@@ -46,10 +46,12 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+//       init 钩子函数执行也很简单，我们先不考虑 keepAlive 的情况，它是通过 createComponentInstanceForVnode 创建一个 Vue 的实例，
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
       )
+//       ，然后调用 $mount 方法挂载子组件
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
@@ -251,6 +253,9 @@ export function createComponentInstanceForVnode (
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state
 ): Component {
+//     createComponentInstanceForVnode 函数构造的一个内部组件的参数
+//   它实际上是继承于 Vue 的一个构造器 Sub，相当于 new Sub(options)
+//   这里有几个关键参数要注意几个点，_isComponent 为 true 表示它是一个组件，parent 表示当前激活的组件实例
   const options: InternalComponentOptions = {
     _isComponent: true,
     _parentVnode: vnode,
@@ -263,6 +268,9 @@ export function createComponentInstanceForVnode (
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
   // new Vue(options)
+  // ，然后执行 new vnode.componentOptions.Ctor(options)。
+//   这里的 vnode.componentOptions.Ctor 对应的就是子组件的构造函数
+//   所以子组件的实例化实际上就是在这个时机执行的，并且它会执行实例的 _init 方法
   return new vnode.componentOptions.Ctor(options)
 }
 // 整个 installComponentHooks 的过程就是把 componentVNodeHooks 的钩子函数合并到 data.hook 中
