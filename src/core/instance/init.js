@@ -80,11 +80,11 @@ export function initMixin (Vue: Class<Component>) {
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
-      initProxy(vm)
+      initProxy(vm) //  vm._renderProxy = vm 对当前对象做一层代理
     } else {
       vm._renderProxy = vm
     }
-    // expose real self
+    // expose real self 给实例标记自己
     vm._self = vm
     // 初始化生命周期在初始化vue实例阶段
     initLifecycle(vm)
