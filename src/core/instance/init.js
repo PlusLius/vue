@@ -64,6 +64,7 @@ export function initMixin (Vue: Class<Component>) {
             vm
           )
        */
+      // vm实例上存的就是内置options与用户options规范化后合并的一个结果
       vm.$options = mergeOptions(
         //解析vm.contructor.options
         resolveConstructorOptions(vm.constructor),
