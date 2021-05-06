@@ -231,6 +231,7 @@ LIFECYCLE_HOOKS.forEach(hook => {
  * options and parent options.
  */
 // 在 Vue 中 directives、filters 以及 components 被认为是资源，
+// 主要还是通过原型链进行继承，如果用户的componets有就用用户的，没有就用原型链继承内置的
 function mergeAssets (
   parentVal: ?Object,
   childVal: ?Object,
