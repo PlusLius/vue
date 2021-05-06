@@ -184,6 +184,7 @@ strats.data = function (
 /**
  * Hooks and props are merged as arrays.
  */
+// 父子钩子相同合并,子的钩子存在父不存在用子的否则用父的钩子
 function mergeHook (
   parentVal: ?Array<Function>,
   childVal: ?Function | ?Array<Function>
