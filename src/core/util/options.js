@@ -650,6 +650,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 //   },
 //   vm
 // )
+// 主要作用就是根据2个对象的key采用不同的策略进行合并最终返回合并后的配置
 export function mergeOptions (
   parent: Object, // 父options自带的options
   child: Object, // 子options用户传入的
@@ -687,8 +688,21 @@ export function mergeOptions (
     parent = mergeOptions(parent, extendsFrom, vm)
   }
   // 用户的mixins
+// const consoleMixin = {
+//   created () {
+//     console.log('created:mixins')
+//   }
+// }
+
+// new Vue ({
+//   mixins: [consoleMixin],
+//   created () {
+//     console.log('created:instance')
+//   }
+// })
   if (child.mixins) {
     for (let i = 0, l = child.mixins.length; i < l; i++) {
+      // 把mixin中的配置取出来与parent配置进行合并，记录返回后的结果，下次与合并后的parent继续进行合并
       parent = mergeOptions(parent, child.mixins[i], vm)
     }
   }
