@@ -260,7 +260,9 @@ export function mountComponent (
   }
   return vm
 }
-
+// 这里的 propsData 是父组件传递的 props 数据，vm 是子组件的实例。vm._props 指向的就是子组件的 props 值，propKeys 就是在之前 initProps 过程中，
+// 缓存的子组件中定义的所有 prop 的 key。主要逻辑就是遍历 propKeys，然后执行 props[key] = validateProp(key, propOptions, propsData, vm) 
+// 重新验证和计算新的 prop 数据，更新 vm._props，也就是子组件的 props，这个就是子组件 props 的更新过程。
 export function updateChildComponent (
   vm: Component,
   propsData: ?Object,
