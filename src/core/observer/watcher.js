@@ -231,6 +231,7 @@ export default class Watcher {
         })
       }
     } else if (this.sync) {
+//       在我们之前对 setter 的分析过程知道，当响应式数据发送变化后，触发了 watcher.update()，只是把这个 watcher 推送到一个队列中，在 nextTick 后才会真正执行 watcher 的回调函数。而一旦我们设置了 sync，就可以在当前 Tick 中同步执行 watcher 的回调函数
       this.run()
     } else {
 //       在一般组件数据更新的场景，会走到最后一个 queueWatcher(this) 的逻辑，queueWatcher
@@ -268,6 +269,7 @@ export default class Watcher {
       const oldValue = this.value
       this.value = value
       this.dirty = false
+//       通过 vm.$watch 创建的 watcher 是一个 user watcher，其实它的功能很简单，在对 watcher 求值以及在执行回调函数的时候，会处理一下错误
       if (this.user) {
         try {
 //           ，则执行 watcher 的回调，
