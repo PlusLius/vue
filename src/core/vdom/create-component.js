@@ -59,10 +59,15 @@ const componentVNodeHooks = {
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
-
+// 在父组件重新渲染的最后，会执行 patch 过程，进而执行 patchVnode 函数，
+// patchVnode 通常是一个递归过程，当它遇到组件 vnode 的时候，会执行组件更新过程的 prepatch 钩子函数
+// 内部会调用 updateChildComponent 方法来更新 props，注意第二个参数就是父组件的 propData，
+// 那么为什么 vnode.componentOptions.propsData 就是父组件传递给子组件的 prop 数据呢（这个也同样解释了第一次渲染的 propsData 来源）？
+// 原来在组件的 render 过程中，对于组件节点会通过 createComponent 方法来创建组件 vnode
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
+//     内部会调用 updateChildComponent 方法来更新 props，注意第二个参数就是父组件的 propData，
     updateChildComponent(
       child,
       options.propsData, // updated props
