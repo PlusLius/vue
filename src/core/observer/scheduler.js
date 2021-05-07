@@ -23,6 +23,8 @@ let index = 0
 /**
  * Reset the scheduler's state.
  */
+// 这个过程就是执行 resetSchedulerState 函数，
+// 逻辑非常简单，就是把这些控制流程状态的一些变量恢复到初始值，把 watcher 队列清空。
 function resetSchedulerState () {
   index = queue.length = activatedChildren.length = 0
   has = {}
@@ -35,6 +37,14 @@ function resetSchedulerState () {
 /**
  * Flush both queues and run the watchers.
  */
+// 队列排序
+// queue.sort((a, b) => a.id - b.id) 对队列做了从小到大的排序，这么做主要有以下要确保以下几点：
+
+// 1.组件的更新由父到子；因为父组件的创建过程是先于子的，所以 watcher 的创建也是先父后子，执行顺序也应该保持先父后子。
+
+// 2.用户的自定义 watcher 要优先于渲染 watcher 执行；因为用户自定义 watcher 是在渲染 watcher 之前创建的。
+
+// 3.如果一个组件在父组件的 watcher 执行期间被销毁，那么它对应的 watcher 执行都可以被跳过，所以父组件的 watcher 应该先执行。
 function flushSchedulerQueue () {
   flushing = true
   let watcher, id
@@ -47,10 +57,22 @@ function flushSchedulerQueue () {
   //    user watchers are created before the render watcher)
   // 3. If a component is destroyed during a parent component's watcher run,
   //    its watchers can be skipped.
+  // 队列排序
+// queue.sort((a, b) => a.id - b.id) 对队列做了从小到大的排序，这么做主要有以下要确保以下几点：
+
+// 1.组件的更新由父到子；因为父组件的创建过程是先于子的，所以 watcher 的创建也是先父后子，执行顺序也应该保持先父后子。
+
+// 2.用户的自定义 watcher 要优先于渲染 watcher 执行；因为用户自定义 watcher 是在渲染 watcher 之前创建的。
+
+// 3.如果一个组件在父组件的 watcher 执行期间被销毁，那么它对应的 watcher 执行都可以被跳过，所以父组件的 watcher 应该先执行。
   queue.sort((a, b) => a.id - b.id)
 
   // do not cache length because more watchers might be pushed
   // as we run existing watchers
+//   队列遍历
+// 在对 queue 排序后，接着就是要对它做遍历，拿到对应的 watcher，执行 watcher.run()。这里需要注意一个细节，
+//   在遍历的时候每次都会对 queue.length 求值，因为在 watcher.run() 的时候，
+//   很可能用户会再次添加新的 watcher，这样会再次执行到 queueWatcher
   for (index = 0; index < queue.length; index++) {
     watcher = queue[index]
     if (watcher.before) {
@@ -58,6 +80,7 @@ function flushSchedulerQueue () {
     }
     id = watcher.id
     has[id] = null
+//     ，拿到对应的 watcher，执行 watcher.run()
     watcher.run()
     // in dev build, check and stop circular updates.
     if (process.env.NODE_ENV !== 'production' && has[id] != null) {
@@ -79,7 +102,7 @@ function flushSchedulerQueue () {
   // keep copies of post queues before resetting state
   const activatedQueue = activatedChildren.slice()
   const updatedQueue = queue.slice()
-
+// 逻辑非常简单，就是把这些控制流程状态的一些变量恢复到初始值，把 watcher 队列清空。
   resetSchedulerState()
 
   // call component updated and activated hooks
@@ -129,15 +152,22 @@ function callActivatedHooks (queue) {
  * Jobs with duplicate IDs will be skipped unless it's
  * pushed when the queue is being flushed.
  */
+// 这里引入了一个队列的概念，这也是 Vue 在做派发更新的时候的一个优化的点，
+// 它并不会每次数据改变都触发 watcher 的回调，而是把这些 watcher 先添加到一个队列里，然后在 nextTick 后执行 flushSchedulerQueue。
 export function queueWatcher (watcher: Watcher) {
   const id = watcher.id
+//   首先用 has 对象保证同一个 Watcher 只添加一次
   if (has[id] == null) {
     has[id] = true
+//     接着对 flushing 的判断，
     if (!flushing) {
       queue.push(watcher)
     } else {
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
+//       可以看到，这时候 flushing 为 true，就会执行到 else 的逻辑，
+//       然后就会从后往前找，找到第一个待插入 watcher 的 id 比当前队列中 watcher 的 id 大的位置。
+//       把 watcher 按照 id的插入到队列中，因此 queue 的长度发生了变化。
       let i = queue.length - 1
       while (i > index && queue[i].id > watcher.id) {
         i--
@@ -145,6 +175,7 @@ export function queueWatcher (watcher: Watcher) {
       queue.splice(i + 1, 0, watcher)
     }
     // queue the flush
+//     最后通过 waiting 保证对 nextTick(flushSchedulerQueue) 的调用逻辑只有一次，
     if (!waiting) {
       waiting = true
       nextTick(flushSchedulerQueue)
