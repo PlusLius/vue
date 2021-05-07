@@ -61,10 +61,10 @@ export default class Watcher {
     vm._watchers.push(this)
     // options
     if (options) {
-      this.deep = !!options.deep
-      this.user = !!options.user
-      this.computed = !!options.computed
-      this.sync = !!options.sync
+      this.deep = !!options.deep // deep watcher
+      this.user = !!options.user // user watcher 通过 vm.$watch 创建的 watcher 是一个 user watcher，其实它的功能很简单，在对 watcher 求值以及在执行回调函数的时候，会处理一下错误，
+      this.computed = !!options.computed // computed watcher  几乎就是为计算属性量身定制的，
+      this.sync = !!options.sync // sync watcher
       this.before = options.before
     } else {
       this.deep = this.user = this.computed = this.sync = false
@@ -137,6 +137,7 @@ export default class Watcher {
 //       所以在 vm._render() 过程中，会触发所有数据的 getter，这样实际上已经完成了一个依赖收集的过程。那么到这里就结束了么，其实并没有，在完成依赖收集后，还有几个逻辑要执行
       if (this.deep) {
 //         这个是要递归去访问 value，触发它所有子项的 getter
+//         这样就创建了一个 deep watcher 了，在 watcher 执行 get 求值的过程中有一段逻辑
         traverse(value)
       }
 //       Dep.target = targetStack.pop()
