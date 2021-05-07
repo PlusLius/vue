@@ -196,6 +196,8 @@ export function defineReactive (
       return value
     },
     set: function reactiveSetter (newVal) {
+//       setter 的逻辑有 2 个关键的点，一个是 childOb = !shallow && observe(newVal)，
+//       如果 shallow 为 false 的情况，会对新设置的值变成一个响应式对象；另一个是 dep.notify()，通知所有的订阅者，
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
@@ -210,7 +212,9 @@ export function defineReactive (
       } else {
         val = newVal
       }
+//       一个是 childOb = !shallow && observe(newVal)，
       childOb = !shallow && observe(newVal)
+//       另一个是 dep.notify()，通知所有的订阅者，
       dep.notify()
     }
   })
