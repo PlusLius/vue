@@ -234,13 +234,19 @@ export default class Watcher {
    * Will be called by the scheduler.
    */
   run () {
+//     run 函数实际上就是执行 this.getAndInvoke 方法，并传入 watcher 的回调函数。
     if (this.active) {
       this.getAndInvoke(this.cb)
     }
   }
-
+// getAndInvoke 函数逻辑也很简单，先通过 this.get() 得到它当前的值，然后做判断，如果满足新旧值不等、新值是对象类型、deep 模式任何一个条件
   getAndInvoke (cb: Function) {
+//     ，先通过 this.get() 得到它当前的值，
+//     所以这就是当我们去修改组件相关的响应式数据的时候，会触发组件重新渲染的原因，接着就会重新执行 patch 的过程，但它和首次渲染有所不同
     const value = this.get()
+//     然后做判断，如果满足新旧值不等
+//     新值是对象类型、deep 模式任何一个条件
+//     ，则执行 watcher 的回调，
     if (
       value !== this.value ||
       // Deep watchers and watchers on Object/Arrays should fire even
@@ -255,6 +261,9 @@ export default class Watcher {
       this.dirty = false
       if (this.user) {
         try {
+//           ，则执行 watcher 的回调，
+//           注意回调函数执行的时候会把第一个和第二个参数传入新值 value 和旧值 oldValue，这就是当我们添加自定义 watcher 的时候能在回调函数的参数中拿到新旧值的原因。
+//           那么对于渲染 watcher 而言，它在执行 this.get() 方法求值的时候，会执行 getter 方法：
           cb.call(this.vm, value, oldValue)
         } catch (e) {
           handleError(e, this.vm, `callback for watcher "${this.expression}"`)
