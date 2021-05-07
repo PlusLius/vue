@@ -351,6 +351,8 @@ function initMethods (vm: Component, methods: Object) {
   }
 }
 //初始化options.watch
+// 这里就是对 watch 对象做遍历，拿到每一个 handler，因为 Vue 是支持 watch 的同一个 key 对应多个 handler
+// ，所以如果 handler 是一个数组，则遍历这个数组，调用 createWatcher 方法，否则直接调用 createWatcher：
 function initWatch (vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
@@ -364,6 +366,9 @@ function initWatch (vm: Component, watch: Object) {
   }
 }
 //创建watch
+// 这里的逻辑也很简单，首先对 hanlder 的类型做判断，拿到它最终的回调函数，
+// 最后调用 vm.$watch(keyOrFn, handler, options) 函数，
+// $watch 是 Vue 原型上的方法，它是在执行 stateMixin 的时候定义的：
 function createWatcher (
   vm: Component,
   expOrFn: string | Function,
