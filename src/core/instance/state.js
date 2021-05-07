@@ -36,6 +36,10 @@ const sharedPropertyDefinition = {
 }
 
 //代理data
+//proxy 方法的实现很简单，通过 Object.defineProperty 把 target[sourceKey][key] 的读写变成了对 target[key] 的读写。
+//所以对于 props 而言，对 vm._props.xxx 的读写变成了 vm.xxx 的读写，而对于 vm._props.xxx 我们可以访问到定义在 props 中的属性，
+//所以我们就可以通过 vm.xxx 访问到定义在 props 中的 xxx 属性了。同理，对于 data 而言，对 vm._data.xxxx 的读写变成了对 vm.xxxx 的读写，
+//而对于 vm._data.xxxx 我们可以访问到定义在 data 函数返回对象中的属性，所以我们就可以通过 vm.xxxx 访问到定义在 data 函数返回对象中的 xxxx 属性了。
 export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -46,6 +50,7 @@ export function proxy (target: Object, sourceKey: string, key: string) {
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 //初始化state -> props.methpds...
+// initState 方法主要是对 props、methods、data、computed 和 wathcer 等属性做了初始化操作。这里我们重点分析 props 和 data，
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
@@ -65,6 +70,8 @@ export function initState (vm: Component) {
   }
 }
 //初始化options.props
+//props 的初始化主要过程，就是遍历定义的 props 配置。遍历的过程主要做两件事情：
+//一个是调用 defineReactive 方法把每个 prop 对应的值变成响应式，可以通过 vm._props.xxx 访问到定义 props 中对应的属性。
 function initProps (vm: Component, propsOptions: Object) {
   //拿到props数据
   const propsData = vm.$options.propsData || {}
@@ -120,6 +127,8 @@ function initProps (vm: Component, propsOptions: Object) {
 }
 
 //初始化options.data
+//data 的初始化主要过程也是做两件事，一个是对定义 data 函数返回对象的遍历，通过 proxy 把每一个值 vm._data.xxx 都代理到
+//vm.xxx 上；另一个是调用 observe 方法观测整个 data 的变化，把 data 也变成响应式，可以通过 vm._data.xxx 访问到定义 data 返回函数中对应的属性，
 function initData (vm: Component) {
   //拿到用户传入的data
   let data = vm.$options.data
