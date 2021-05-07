@@ -22,6 +22,7 @@ let uid = 0
  * and fires callback when the expression value changes.
  * This is used for both the $watch() api and directives.
  */
+// Watcher 是一个 Class，在它的构造函数中，定义了一些和 Dep 相关的属性：
 export default class Watcher {
   vm: Component;
   expression: string;
@@ -72,8 +73,10 @@ export default class Watcher {
     this.id = ++uid // uid for batching
     this.active = true
     this.dirty = this.computed // for computed watchers
+//     其中，this.deps 和 this.newDeps 表示 Watcher 实例持有的 Dep 实例的数组
     this.deps = []
     this.newDeps = []
+//     this.depIds 和 this.newDepIds 分别代表 this.deps 和 this.newDeps 的 id Set
     this.depIds = new Set()
     this.newDepIds = new Set()
     this.expression = process.env.NODE_ENV !== 'production'
@@ -101,15 +104,25 @@ export default class Watcher {
       this.value = this.get()
     }
   }
-
+// Watcher 还定义了一些原型的方法，和依赖收集相关的有 get、addDep 和 cleanupDeps 方法
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
   get () {
+//     当我们去实例化一个渲染 watcher 的时候，首先进入 watcher 的构造函数逻辑，然后会执行它的 this.get() 方法，进入 get 函数，首先会执行：
+// export function pushTarget (_target: Watcher) {
+//   if (Dep.target) targetStack.push(Dep.target)
+//   Dep.target = _target
+// }
+//     实际上就是把 Dep.target 赋值为当前的渲染 watcher 并压栈（为了恢复用）。接着又执行了：
     pushTarget(this)
     let value
     const vm = this.vm
     try {
+//       this.getter 对应就是 updateComponent 函数，这实际上就是在执行
+//       vm._update(vm._render(), hydrating)
+//       它会先执行 vm._render() 方法，因为之前分析过这个方法会生成 渲染 VNode，并且在这个过程中会对 vm 上的数据访问，这个时候就触发了数据对象的 getter。
+//       那么每个对象值的 getter 都持有一个 dep，在触发 getter 的时候会调用 dep.depend() 方法，也就会执行 Dep.target.addDep(this)。
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -133,9 +146,13 @@ export default class Watcher {
    * Add a dependency to this directive.
    * 添加一个依赖到这个指令
    */
+// 刚才我们提到这个时候 Dep.target 已经被赋值为渲染 watcher，那么就执行到 addDep 方法：
   addDep (dep: Dep) {
     const id = dep.id
     //添加dep
+//     这时候会做一些逻辑判断（保证同一数据不会被添加多次）后执行 dep.addSub(this)，
+//     那么就会执行 this.subs.push(sub)，也就是说把当前的 watcher 订阅到这个数据持有的 dep 的 subs 中，
+//     这个目的是为后续数据变化时候能通知到哪些 subs 做准备。
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
