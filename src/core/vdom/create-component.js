@@ -98,9 +98,10 @@ const componentVNodeHooks = {
       }
     }
   },
-
+// 绍组件生命周期的时候提到 beforeDestroy & destroyed 这两个生命周期钩子函数，它们就是在执行 invokeDestroyHook 过程中，执行了 vnode 的 destory 钩子函数
   destroy (vnode: MountedComponentVNode) {
     const { componentInstance } = vnode
+//     当组件并不是 keepAlive 的时候，会执行 componentInstance.$destroy() 方法，然后就会执行 beforeDestroy & destroyed 两个钩子函数。
     if (!componentInstance._isDestroyed) {
       if (!vnode.data.keepAlive) {
         componentInstance.$destroy()
