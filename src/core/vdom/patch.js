@@ -31,19 +31,20 @@ import {
 export const emptyNode = new VNode('', {}, [])
 
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
-
+// sameVnode 的逻辑非常简单，如果两个 vnode 的 key 不相等，则是不同的；否则继续判断对于同步组件，则判断 isComment、data、input 类型等是否相同，对于异步组件，则判断 asyncFactory 是否相同。
+// 所以根据新旧 vnode 是否为 sameVnode，会走到不同的更新逻辑，我们先来说一下不同的情况。
 function sameVnode (a, b) {
   return (
-    a.key === b.key && (
+    a.key === b.key && ( // 如果两个 vnode 的 key 不相等，则是不同的；
       (
         a.tag === b.tag &&
         a.isComment === b.isComment &&
         isDef(a.data) === isDef(b.data) &&
         sameInputType(a, b)
       ) || (
-        isTrue(a.isAsyncPlaceholder) &&
-        a.asyncFactory === b.asyncFactory &&
-        isUndef(b.asyncFactory.error)
+        isTrue(a.isAsyncPlaceholder) && // 否则继续判断对于同步组件，则判断 isComment、data、input 类型等是否相同，
+        a.asyncFactory === b.asyncFactory && // 对于异步组件，则判断 asyncFactory 是否相同
+        isUndef(b.asyncFactory.error) 
       )
     )
   )
@@ -121,7 +122,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
   }
 
   let creatingElmInVPre = 0
-  
+//   如果新旧 vnode 不同，那么更新的逻辑非常简单，它本质上是要替换已存在的节点
   function createElm (
     vnode,
     insertedVnodeQueue,
@@ -377,7 +378,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
       }
     }
   }
-
+// 把 oldVnode 从当前 DOM 树中删除，如果父节点存在，则执行 removeVnodes
   function removeVnodes (parentElm, vnodes, startIdx, endIdx) {
     for (; startIdx <= endIdx; ++startIdx) {
       const ch = vnodes[startIdx]
@@ -391,7 +392,9 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
       }
     }
   }
-
+// 删除节点逻辑很简单，就是遍历待删除的 vnodes 做删除，其中 removeAndInvokeRemoveHook 的作用是从 DOM 中移除节点并执行 module 的 remove 钩子函数，
+//   并对它的子节点递归调用 removeAndInvokeRemoveHook 函数；invokeDestroyHook 是执行 module 的 destory 钩子函数以及 vnode 的 destory 钩子函数，
+//   并对它的子 vnode 递归调用 invokeDestroyHook 函数；removeNode 就是调用平台的 DOM API 去把真正的 DOM 节点移除。
   function removeAndInvokeRemoveHook (vnode, rm) {
     if (isDef(rm) || isDef(vnode.data)) {
       let i
@@ -746,6 +749,8 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
       createElm(vnode, insertedVnodeQueue)
     } else {
       const isRealElement = isDef(oldVnode.nodeType)
+//       这里执行 patch 的逻辑和首次渲染是不一样的，因为 oldVnode 不为空，并且它和 vnode 都是 VNode 类型，
+//       接下来会通过 sameVNode(oldVnode, vnode) 判断它们是否是相同的 VNode 来决定走不同的更新逻辑：
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
         patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly)
@@ -779,6 +784,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
         }
 
         // replacing existing element
+//         以当前旧节点为参考节点，创建新的节点，并插入到 DOM 中
         const oldElm = oldVnode.elm // 实际就是传入的el
         const parentElm = nodeOps.parentNode(oldElm) // 将el作为父dom
 
@@ -795,6 +801,9 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
         )
 
         // update parent placeholder node element, recursively
+//         更新父的占位符节点
+//         找到当前 vnode 的父的占位符节点，先执行各个 module 的 destroy 的钩子函数，如果当前占位符是一个可挂载的节点，
+//         则执行 module 的 create 钩子函数。对于这些钩子函数的作用，在之后的章节会详细介绍。
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent
           const patchable = isPatchable(vnode)
@@ -825,6 +834,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
         }
 
         // destroy old node
+//         删除旧节点
         if (isDef(parentElm)) {
           removeVnodes(parentElm, [oldVnode], 0, 0)
         } else if (isDef(oldVnode.tag)) {
