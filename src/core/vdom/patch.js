@@ -520,7 +520,8 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
       if (isDef(c) && sameVnode(node, c)) return i
     }
   }
-
+// 对于新旧节点不同的情况，这种创建新节点 -> 更新占位符节点 -> 删除旧节点的逻辑是很容易理解的。还有一种组件 vnode 的更新情况是新旧节点相同，它会调用 patchVNode 方法
+//   patchVnode 的作用就是把新的 vnode patch 到旧的 vnode 上，这里我们只关注关键的核心逻辑，我把它拆成四步骤：
   function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
     if (oldVnode === vnode) {
       return
