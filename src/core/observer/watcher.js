@@ -97,6 +97,7 @@ export default class Watcher {
         )
       }
     }
+//     可以发现 computed watcher 会并不会立刻求值，同时持有一个 dep 实例。
     if (this.computed) {
       this.value = undefined
       this.dep = new Dep()
@@ -203,11 +204,17 @@ export default class Watcher {
 // 在一般组件数据更新的场景，会走到最后一个 queueWatcher(this) 的逻辑，queueWatcher
   update () {
     /* istanbul ignore else */
+//     一旦我们对计算属性依赖的数据做修改，则会触发 setter 过程，通知所有订阅它变化的 watcher 更新，执行 watcher.update() 
+//     我们知道计算属性本质上就是一个 computed watcher，也了解了它的创建过程和被访问触发 getter 以及依赖更新的过程，其实这是最新的计算属性的实现，
+//     之所以这么设计是因为 Vue 想确保不仅仅是计算属性依赖的值发生变化，而是当计算属性最终计算的值发生变化才会触发渲染 watcher 重新渲染，本质上是一种优化。
     if (this.computed) {
       // A computed property watcher has two modes: lazy and activated.
       // It initializes as lazy by default, and only becomes activated when
       // it is depended on by at least one subscriber, which is typically
       // another computed property or a component's render function.
+//       那么对于计算属性这样的 computed watcher，它实际上是有 2 种模式，lazy 和 active。
+//       如果 this.dep.subs.length === 0 成立，则说明没有人去订阅这个 computed watcher 的变化，
+//       仅仅把 this.dirty = true，只有当下次再访问这个计算属性的时候才会重新求值。在我们的场景下，渲染 watcher 订阅了这个 computed watcher 的变化，
       if (this.dep.subs.length === 0) {
         // In lazy mode, we don't want to perform computations until necessary,
         // so we simply mark the watcher as dirty. The actual computation is
@@ -217,6 +224,7 @@ export default class Watcher {
       } else {
         // In activated mode, we want to proactively perform the computation
         // but only notify our subscribers when the value has indeed changed.
+//         getAndInvoke 函数会重新计算，然后对比新旧值，如果变化了则执行回调函数，那么这里这个回调函数是 this.dep.notify()，在我们这个场景下就是触发了渲染 watcher 重新渲染。
         this.getAndInvoke(() => {
           this.dep.notify()
         })
@@ -280,6 +288,11 @@ export default class Watcher {
    * 计算并返回watcher的计算结果
    * 这只是对computed属性观察者的调用
    */
+// evaluate 的逻辑非常简单，判断 this.dirty，如果为 true 则通过 this.get() 求值，
+// 然后把 this.dirty 设置为 false。在求值过程中，会执行 value = this.getter.call(vm, vm)，
+// 这实际上就是执行了计算属性定义的 getter 函数，在我们这个例子就是执行了 return this.firstName + ' ' + this.lastName。
+// 这里需要特别注意的是，由于 this.firstName 和 this.lastName 都是响应式对象，这里会触发它们的 getter，
+// 根据我们之前的分析，它们会把自身持有的 dep 添加到当前正在计算的 watcher 中，这个时候 Dep.target 就是这个 computed watcher。
   evaluate () {
     //dirty为true
     if (this.dirty) {
@@ -289,6 +302,7 @@ export default class Watcher {
       this.dirty = false
     }
     //返回最新的值
+//     最后通过 return this.value 拿到计算属性对应的值。我们知道了计算属性的求值过程，
     return this.value
   }
 
@@ -296,7 +310,9 @@ export default class Watcher {
    * Depend on this watcher. Only for computed property watchers.
    * 只适用于computed属性的watcher
    */
+// 然后当我们的 render 函数执行访问到 this.fullName 的时候，就触发了计算属性的 getter，它会拿到计算属性对应的 watcher，然后执行 watcher.depend()，
   depend () {
+//     这时候的 Dep.target 是渲染 watcher，所以 this.dep.depend() 相当于渲染 watcher 订阅了这个 computed watcher 的变化。
     if (this.dep && Dep.target) {
       //执行depend
       this.dep.depend()
