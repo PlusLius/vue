@@ -200,6 +200,7 @@ export default class Watcher {
    * Subscriber interface.
    * Will be called when a dependency changes.
    */
+// 在一般组件数据更新的场景，会走到最后一个 queueWatcher(this) 的逻辑，queueWatcher
   update () {
     /* istanbul ignore else */
     if (this.computed) {
@@ -223,6 +224,7 @@ export default class Watcher {
     } else if (this.sync) {
       this.run()
     } else {
+//       在一般组件数据更新的场景，会走到最后一个 queueWatcher(this) 的逻辑，queueWatcher
       queueWatcher(this)
     }
   }
