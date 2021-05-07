@@ -23,9 +23,19 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
  * update computation.
  * 在某些情况下，我们可能希望禁用组件内部的观察更新计算
  */
+// 其实子组件的重新渲染有 2 种情况，一个是 prop 值被修改，另一个是对象类型的 prop 内部属性的变化。
+
+// 先来看一下 prop 值被修改的情况，当执行 props[key] = validateProp(key, propOptions, propsData, vm) 更新子组件 prop 的时候，会触发 prop 的 setter 过程，只要在渲染子组件的时候访问过这个 prop 值，那么根据响应式原理，就会触发子组件的重新渲染。
+
+// 再来看一下当对象类型的 prop 的内部属性发生变化的时候，这个时候其实并没有触发子组件 prop 的更新。但是在子组件的渲染过程中，访问过这个对象 prop，所以这个对象 prop 在触发 getter 的时候会把子组件的 render watcher 收集到依赖中，然后当我们在父组件更新这个对象 prop 的某个属性的时候，会触发 setter 过程，也就会通知子组件 render watcher 的 update，进而触发子组件的重新渲染。
+
+// 以上就是当父组件 props 更新，触发子组件重新渲染的 2 种情况。
 export let shouldObserve: boolean = true
 
 export function toggleObserving (value: boolean) {
+// 它在当前模块中定义了 shouldObserve 变量，用来控制在 observe 的过程中是否需要把当前值变成一个 Observer 对象。
+
+// 那么为什么在 props 的初始化和更新过程中，多次执行 toggleObserving(false) 呢，接下来我们就来分析这几种情况。
   shouldObserve = value
 }
 
