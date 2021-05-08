@@ -26,7 +26,7 @@ export class CodegenState {
     this.dataGenFns = pluckModuleFunction(options.modules, 'genData')
     this.directives = extend(extend({}, baseDirectives), options.directives)
     const isReservedTag = options.isReservedTag || no
-    this.maybeComponent = (el: ASTElement) => !isReservedTag(el.tag)
+    this.maybeComponent = (el: ASTElement) => !isReservedTag(el.tag) // 使用vnode的时候，判断一个tag是不是组件
     this.onceId = 0
     this.staticRenderFns = []
   }
@@ -76,6 +76,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
       }${
         children ? `,${children}` : '' // children
       })`
+     // 生成_c后d这个参数表示是否是一个组件1表示是组件
     }
     // module transforms
     for (let i = 0; i < state.transforms.length; i++) {
@@ -391,6 +392,7 @@ export function genChildren (
     ) {
       return (altGenElement || genElement)(el, state)
     }
+    // 如果是组件类型久返回1表示需要规范化否则就是0
     const normalizationType = checkSkip
       ? getNormalizationType(children, state.maybeComponent)
       : 0
