@@ -27,19 +27,48 @@ const ALWAYS_NORMALIZE = 2
 // without getting yelled at by flow
 // createElement实际是对_createElement的封装参数更加灵活
 // 在处理这些参数后，调用真正创建 VNode 的函数 _createElement
+
+// (function anonymous(
+// ) {
+//     with (this) {
+//         return _c(
+//             'div',
+//             { staticClass: "test", style: (positionStyle), attrs: { "id": "app" } },
+//             [_v("\n        aaasdlfhl\n        "),
+//             _c('hello-word'),
+//             _v(" "),
+//             _c('global', [_c('other')], 1)
+//             ],
+//             1)
+//     }
+// })
+//  vm._c = (a, b, c, d) => {
+//     createElement(vm, a, b, c, d, false);
+//   }
+// vm.$createElement = (a, b, c, d) => {
+//     createElement(vm, a, b, c, d, true);
+//   }
 export function createElement (
-  context: Component,
-  tag: any,
-  data: any,
-  children: any,
-  normalizationType: any,
-  alwaysNormalize: boolean
+  context: Component, // vm 内置填进去的
+  tag: any, //  tag
+  data: any, // options.data
+  children: any, // [vnode] or text
+  normalizationType: any, // 组件类型是1 不是组件类型是 0
+  alwaysNormalize: boolean // 内置填进去的_c是false 不需要永远规范化 $createElement手写render需要一直规范化
 ): VNode | Array<VNode> {
+   // 在没传data的情况下
+    // createElement(div, ['div',div'], 1)
+    // 如果是字符，布尔类型，数字类型
+    // createElement(div, 'hello world', 0)
   if (Array.isArray(data) || isPrimitive(data)) {
+   // 将children的值给normalizationType
     normalizationType = children
+    // 将data的值给children
     children = data
+    // 将data改成undefined
     data = undefined
   }
+   // 如果alwaysNormalize为true就设置为ALWAYS_NORMALIZE，用户手写render就把规范类型改成2
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
