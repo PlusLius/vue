@@ -100,12 +100,14 @@ function flushSchedulerQueue () {
   }
 
   // keep copies of post queues before resetting state
+//   等所有的渲染完毕，在 nextTick后会执行 flushSchedulerQueue，
   const activatedQueue = activatedChildren.slice()
   const updatedQueue = queue.slice()
 // 逻辑非常简单，就是把这些控制流程状态的一些变量恢复到初始值，把 watcher 队列清空。
   resetSchedulerState()
 
   // call component updated and activated hooks
+//   也就是遍历所有的 activatedChildren，执行 activateChildComponent 方法，通过队列调的方式就是把整个 activated 时机延后了。
   callActivatedHooks(activatedQueue)
   callUpdatedHooks(updatedQueue)
 
@@ -136,13 +138,17 @@ function callUpdatedHooks (queue) {
 export function queueActivatedComponent (vm: Component) {
   // setting _inactive to false here so that a render function can
   // rely on checking whether it's in an inactive tree (e.g. router-view)
+//   这个逻辑很简单，
   vm._inactive = false
+//   把当前 vm 实例添加到 activatedChildren 数组中，等所有的渲染完毕，在 nextTick后会执行 flushSchedulerQueue，
   activatedChildren.push(vm)
 }
 
 function callActivatedHooks (queue) {
+  //   也就是遍历所有的 activatedChildren，
   for (let i = 0; i < queue.length; i++) {
     queue[i]._inactive = true
+//     执行 activateChildComponent 方法，通过队列调的方式就是把整个 activated 时机延后了。
     activateChildComponent(queue[i], true /* true */)
   }
 }
