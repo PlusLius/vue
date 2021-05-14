@@ -65,6 +65,7 @@ const componentVNodeHooks = {
 // 那么为什么 vnode.componentOptions.propsData 就是父组件传递给子组件的 prop 数据呢（这个也同样解释了第一次渲染的 propsData 来源）？
 // 原来在组件的 render 过程中，对于组件节点会通过 createComponent 方法来创建组件 vnode
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
+//     当我们从 B 组件再次点击 switch 切换到 A 组件，就会命中缓存渲染。
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
 //     内部会调用 updateChildComponent 方法来更新 props，注意第二个参数就是父组件的 propData，
