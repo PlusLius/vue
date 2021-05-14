@@ -11,6 +11,9 @@ let warn
 export const RANGE_TOKEN = '__r'
 export const CHECKBOX_RADIO_TOKEN = '__c'
 
+// 也就是说我们执行 needRuntime = !!gen(el, dir, state.warn) 就是在执行 model 函数，
+// 它会根据 AST 元素节点的不同情况去执行不同的逻辑，对于我们这个 case 而言，
+// 它会命中 genDefaultModel(el, value, modifiers) 的逻辑，稍后我们也会介绍组件的处理，
 export default function model (
   el: ASTElement,
   dir: ASTDirective,
