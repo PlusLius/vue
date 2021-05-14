@@ -243,6 +243,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
         insert(parentElm, vnode.elm, refElm)
 //         这个时候 isReactivated 为 true，
         if (isTrue(isReactivated)) {
+//           ，在 isReactivated 为 true 的情况下会执行 reactivateComponent
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
         }
         return true
