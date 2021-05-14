@@ -241,6 +241,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
         //当 vnode 已经执行完 patch 后，执行 initComponent 函数
         initComponent(vnode, insertedVnodeQueue)
         insert(parentElm, vnode.elm, refElm)
+//         这个时候 isReactivated 为 true，
         if (isTrue(isReactivated)) {
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
         }
