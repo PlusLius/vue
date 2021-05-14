@@ -642,6 +642,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
     if (isTrue(initial) && isDef(vnode.parent)) {
       vnode.parent.data.pendingInsert = queue
     } else {
+//       执行 vnode 的 insert 钩子函数
       for (let i = 0; i < queue.length; ++i) {
         queue[i].data.hook.insert(queue[i])
       }
@@ -897,7 +898,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
         }
       }
     }
-
+// 在渲染的最后一步，会执行 invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch) 函数执行 vnode 的 insert 钩子函数
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
     return vnode.elm
   }
