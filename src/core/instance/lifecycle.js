@@ -273,7 +273,7 @@ export function updateChildComponent (
   if (process.env.NODE_ENV !== 'production') {
     isUpdatingChildComponent = true
   }
-
+// updateChildComponent 方法主要是去更新组件实例的一些属性，
   // determine whether component has slot children
   // we need to do this before overwriting $options._renderChildren
   const hasChildren = !!(
@@ -319,8 +319,13 @@ export function updateChildComponent (
   updateComponentListeners(vm, listeners, oldListeners)
 
   // resolve slots + force update if has children
+//   这里我们重点关注一下 slot 部分，由于 <keep-alive> 组件本质上支持了 slot，所以它执行 prepatch 的时候，
   if (hasChildren) {
+//     需要对自己的 children，也就是这些 slots 做重新解析，
     vm.$slots = resolveSlots(renderChildren, parentVnode.context)
+//     并触发 <keep-alive> 组件实例 $forceUpdate 逻辑
+//      ，也就是重新执行 <keep-alive> 的 render 方法，这个时候如果它包裹的第一个组件 vnode 命中缓存，
+// 则直接返回缓存中的 vnode.componentInstance，在我们的例子中就是缓存的 A 组件，接着又会执行 patch 过程，再次执行到 createComponent 方法，
     vm.$forceUpdate()
   }
 
