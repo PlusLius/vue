@@ -145,7 +145,7 @@ function genDefaultModel (
       )
     }
   }
-
+// genDefaultModel 函数先处理了 modifiers，它的不同主要影响的是 event 和 valueExpression 的值，
   const { lazy, number, trim } = modifiers || {}
   const needCompositionGuard = !lazy && type !== 'range'
   const event = lazy
@@ -159,9 +159,10 @@ function genDefaultModel (
     valueExpression = `$event.target.value.trim()`
   }
   if (number) {
+// 对于我们的例子，event 为 input，valueExpression 为 $event.target.value
     valueExpression = `_n(${valueExpression})`
   }
-
+// 。然后去执行 genAssignmentCode 去生成代码，
   let code = genAssignmentCode(value, valueExpression)
   if (needCompositionGuard) {
     code = `if($event.target.composing)return;${code}`
