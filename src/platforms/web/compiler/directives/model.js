@@ -49,6 +49,12 @@ export default function model (
   } else if (tag === 'input' || tag === 'textarea') {
     genDefaultModel(el, value, modifiers)
   } else if (!config.isReservedTag(tag)) {
+// 生成组件v-model
+// el.model = {
+//  callback:'function ($$v) {message=$$v}',
+//  expression:'"message"',
+//  value:'(message)'
+//}
     genComponentModel(el, value, modifiers)
     // component v-model doesn't need extra runtime
     return false
