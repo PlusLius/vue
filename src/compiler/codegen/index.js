@@ -283,6 +283,23 @@ export function genData (el: ASTElement, state: CodegenState): string {
 // 也是先从编译阶段分析，首先是 parse 阶段， 
 // v-model 被当做普通的指令解析到 el.directives 中，
 // 然后在 codegen 阶段，执行 genData 的时候，会执行 const dirs = genDirectives(el, state)
+// with(this) {
+//   return _c('div',[_c('input',{
+//     directives:[{
+//       name:"model",
+//       rawName:"v-model",
+//       value:(message),
+//       expression:"message"
+//     }],
+//     attrs:{"placeholder":"edit me"},
+//     domProps:{"value":(message)},
+//     on:{"input":function($event){
+//       if($event.target.composing)
+//         return;
+//       message=$event.target.value
+//     }}}),_c('p',[_v("Message is: "+_s(message))])
+//     ])
+// }
 function genDirectives (el: ASTElement, state: CodegenState): string | void {
   const dirs = el.directives
   if (!dirs) return
