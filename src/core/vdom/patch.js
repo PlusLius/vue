@@ -223,6 +223,10 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
     let i = vnode.data
 //     如果 vnode 是一个组件 VNode
     if (isDef(i)) {
+      //   createComponent 定义了 isReactivated 的变量 ，它是根据 vnode.componentInstance 以及 vnode.data.keepAlive 的判断
+      //  ，第一次渲染的时候，vnode.componentInstance 为 undefined，vnode.data.keepAlive 为 true，
+      // 因为它的父组件 <keep-alive> 的 render 函数会先执行，那么该 vnode 缓存到内存中，
+      //  并且设置 vnode.data.keepAlive 为 true，因此 isReactivated 为 false，那么走正常的 init 的钩子函数执行组件的 mount。
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
 //       ，那么条件会满足，并且得到 i 就是 init 钩子函数
       if (isDef(i = i.hook) && isDef(i = i.init)) {
@@ -234,6 +238,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
       if (isDef(vnode.componentInstance)) {
+        //当 vnode 已经执行完 patch 后，执行 initComponent 函数
         initComponent(vnode, insertedVnodeQueue)
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
@@ -243,12 +248,49 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
       }
     }
   }
+// let A = {
+//   template: '<div class="a">' +
+//   '<p>A Comp</p>' +
+//   '</div>',
+//   name: 'A'
+// }
 
+// let B = {
+//   template: '<div class="b">' +
+//   '<p>B Comp</p>' +
+//   '</div>',
+//   name: 'B'
+// }
+
+// let vm = new Vue({
+//   el: '#app',
+//   template: '<div>' +
+//   '<keep-alive>' +
+//   '<component :is="currentComp">' +
+//   '</component>' +
+//   '</keep-alive>' +
+//   '<button @click="change">switch</button>' +
+//   '</div>',
+//   data: {
+//     currentComp: 'A'
+//   },
+//   methods: {
+//     change() {
+//       this.currentComp = this.currentComp === 'A' ? 'B' : 'A'
+//     }
+//   },
+//   components: {
+//     A,
+//     B
+//   }
+// })
   function initComponent (vnode, insertedVnodeQueue) {
     if (isDef(vnode.data.pendingInsert)) {
       insertedVnodeQueue.push.apply(insertedVnodeQueue, vnode.data.pendingInsert)
       vnode.data.pendingInsert = null
     }
+    // 这里会有 vnode.elm 缓存了 vnode 创建生成的 DOM 节点。所以对于首次渲染而言，除了在 <keep-alive> 中建立缓存，和普通组件渲染没什么区别。
+//     所以对我们的例子，初始化渲染 A 组件以及第一次点击 switch 渲染 B 组件，都是首次渲染
     vnode.elm = vnode.componentInstance.$el
     if (isPatchable(vnode)) {
       invokeCreateHooks(vnode, insertedVnodeQueue)
