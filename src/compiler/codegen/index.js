@@ -253,6 +253,18 @@ export function genData (el: ASTElement, state: CodegenState): string {
     data += `${genScopedSlots(el.scopedSlots, state)},`
   }
   // component v-model
+//   with(this){
+//   return _c('div',[_c('child',{
+//     model:{
+//       value:(message),
+//       callback:function ($$v) {
+//         message=$$v
+//       },
+//       expression:"message"
+//     }
+//   }),
+//   _c('p',[_v("Message is: "+_s(message))])],1)
+// }
   if (el.model) {
     data += `model:{value:${
       el.model.value
