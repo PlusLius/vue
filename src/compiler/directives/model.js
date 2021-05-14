@@ -3,6 +3,11 @@
 /**
  * Cross-platform code generation for component v-model
  */
+// el.model = {
+//   callback:'function ($$v) {message=$$v}',
+//   expression:'"message"',
+//   value:'(message)'
+// }
 export function genComponentModel (
   el: ASTElement,
   value: string,
