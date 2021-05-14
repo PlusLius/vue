@@ -65,10 +65,14 @@ const componentVNodeHooks = {
 // 那么为什么 vnode.componentOptions.propsData 就是父组件传递给子组件的 prop 数据呢（这个也同样解释了第一次渲染的 propsData 来源）？
 // 原来在组件的 render 过程中，对于组件节点会通过 createComponent 方法来创建组件 vnode
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
-//     当我们从 B 组件再次点击 switch 切换到 A 组件，就会命中缓存渲染。
+// 当我们从 B 组件再次点击 switch 切换到 A 组件，就会命中缓存渲染。
+// 当数据发送变化，在 patch 的过程中会执行 patchVnode 的逻辑，它会对比新旧 vnode 节点
+//，甚至对比它们的子节点去做更新逻辑，但是对于组件 vnode 而言，是没有 children 的，那么对于 <keep-alive> 组件而言，如何更新它包裹的内容呢？
+//  原来 patchVnode 在做各种 diff 之前，会先执行 prepatch 的钩子函数
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
 //     内部会调用 updateChildComponent 方法来更新 props，注意第二个参数就是父组件的 propData，
+//     prepatch 核心逻辑就是执行 updateChildComponent 方法，
     updateChildComponent(
       child,
       options.propsData, // updated props
