@@ -33,12 +33,16 @@ export function genComponentModel (
 /**
  * Cross-platform codegen helper for generating v-model value assignment code.
  */
+
 export function genAssignmentCode (
   value: string,
   assignment: string
 ): string {
+  //该方法首先对 v-model 对应的 value 做了解析，它处理了非常多的情况，
+  //对我们的例子，value 就是 messgae，所以返回的 res.key 为 null，
   const res = parseModel(value)
   if (res.key === null) {
+//     然后我们就得到 ${value}=${assignment}，也就是 message=$event.target.value。
     return `${value}=${assignment}`
   } else {
     return `$set(${res.exp}, ${res.key}, ${assignment})`
