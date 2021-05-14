@@ -325,6 +325,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
     }
     // unlike a newly created component,
     // a reactivated keep-alive component doesn't insert itself
+//     最后通过执行 insert(parentElm, vnode.elm, refElm) 就把缓存的 DOM 对象直接插入到目标元素中，这样就完成了在数据更新的情况下的渲染过程
     insert(parentElm, vnode.elm, refElm)
   }
   // 最后调用 insert 方法把 DOM 插入到父节点中，因为是递归调用，子元素会优先调用 insert，所以整个 vnode 树节点的插入顺序是先子后父。
