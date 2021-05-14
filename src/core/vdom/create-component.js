@@ -309,10 +309,73 @@ function mergeHook (f1: any, f2: any): Function {
 
 // transform component v-model info (value and callback) into
 // prop and event handler respectively.
+// data.props = {
+//   value: (message),
+// }
+// data.on = {
+//   input: function ($$v) {
+//     message=$$v
+//   }
+// } 
+// let vm = new Vue({
+//   el: '#app',
+//   template: '<div>' +
+//   '<child :value="message" @input="message=arguments[0]"></child>' +
+//   '<p>Message is: {{ message }}</p>' +
+//   '</div>',
+//   data() {
+//     return {
+//       message: ''
+//     }
+//   },
+//   components: {
+//     Child
+//   }
+// })
+// 子组件传递的 value 绑定到当前父组件的 message，同时监听自定义 input 事件，当子组件派发 input 事件的时候，
+// 父组件会在事件回调函数中修改 message 的值，同时 value 也会发生变化，子组件的 input 值被更新。
+// 这就是典型的 Vue 的父子组件通讯模式，父组件通过 prop 把数据传递到子组件，子组件修改了数据后把改变通过 $emit 事件的方式通知父组件，
+// 所以说组件上的 v-model 也是一种语法糖。
+// 另外我们注意到组件 v-model 的实现，子组件的 value prop 以及派发的 input 事件名是可配的，可以看到 transformModel 中对这部分的处理：
+// 也就是说可以在定义子组件的时候通过 model 选项配置子组件接收的 prop 名以及派发的事件名
+// let Child = {
+//   template: '<div>'
+//   + '<input :value="msg" @input="updateValue" placeholder="edit me">' +
+//   '</div>',
+//   props: ['msg'],
+//   model: {
+//     prop: 'msg',
+//     event: 'change'
+//   },
+//   methods: {
+//     updateValue(e) {
+//       this.$emit('change', e.target.value)
+//     }
+//   }
+// }
+
+// let vm = new Vue({
+//   el: '#app',
+//   template: '<div>' +
+//   '<child v-model="message"></child>' +
+//   '<p>Message is: {{ message }}</p>' +
+//   '</div>',
+//   data() {
+//     return {
+//       message: ''
+//     }
+//   },
+//   components: {
+//     Child
+//   }
+// })
+// 子组件修改了接收的 prop 名以及派发的事件名，然而这一切父组件作为调用方是不用关心的，这样做的好处是我们可以把 value 这个 prop 作为其它的用途。
 function transformModel (options, data: any) {
+  // transformModel 逻辑很简单，给 data.props 添加 data.model.value，
   const prop = (options.model && options.model.prop) || 'value'
   const event = (options.model && options.model.event) || 'input'
   ;(data.props || (data.props = {}))[prop] = data.model.value
+//   并且给data.on 添加 data.model.callback
   const on = data.on || (data.on = {})
   if (isDef(on[event])) {
     on[event] = [data.model.callback].concat(on[event])
