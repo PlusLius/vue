@@ -164,10 +164,19 @@ function genDefaultModel (
   }
 // 。然后去执行 genAssignmentCode 去生成代码，
   let code = genAssignmentCode(value, valueExpression)
+// 。然后我们又命中了 needCompositionGuard 为 true 的逻辑，所以最终的 code 为 if($event.target.composing)return;message=$event.target.value。
   if (needCompositionGuard) {
     code = `if($event.target.composing)return;${code}`
   }
-
+// code 生成完后，又执行了 2 句非常关键的代码：
+// 这实际上就是 input 实现 v-model 的精髓，通过修改 AST 元素，
+// 给 el 添加一个 prop，相当于我们在 input 上动态绑定了 value，又给 el 添加了事件处理，
+// 相当于在 input 上绑定了 input 事件，其实转换成模板如下：
+//<input
+//  v-bind:value="message"
+//  v-on:input="message=$event.target.value">
+// 其实就是动态绑定了 input 的 value 指向了 messgae 变量，并且在触发 input 事件的时候去动态把 message 设置为目标值，
+// 这样实际上就完成了数据双向绑定了，所以说 v-model 实际上就是语法糖。
   addProp(el, 'value', `(${value})`)
   addHandler(el, event, code, null, true)
   if (trim || number) {
