@@ -353,6 +353,7 @@ export function activateChildComponent (vm: Component, direct?: boolean) {
   if (vm._inactive || vm._inactive === null) {
     vm._inactive = false
     for (let i = 0; i < vm.$children.length; i++) {
+//       可以看到这里就是执行组件的 acitvated 钩子函数，并且递归去执行它的所有子组件的 activated 钩子函数。
       activateChildComponent(vm.$children[i])
     }
     callHook(vm, 'activated')
