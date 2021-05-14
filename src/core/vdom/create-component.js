@@ -37,6 +37,7 @@ import {
 // 在 VNode 执行 patch 的过程中执行相关的钩子函数
 const componentVNodeHooks = {
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
+//   并且在执行 init 钩子函数的时候不会再执行组件的 mount 过程了，
     if (
       vnode.componentInstance &&
       !vnode.componentInstance._isDestroyed &&
@@ -44,6 +45,7 @@ const componentVNodeHooks = {
     ) {
       // kept-alive components, treat as a patch
       const mountedNode: any = vnode // work around flow
+//   这也就是被 <keep-alive> 包裹的组件在有缓存的时候就不会在执行组件的 created、mounted 等钩子函数的原因了。
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
 //       init 钩子函数执行也很简单，我们先不考虑 keepAlive 的情况，它是通过 createComponentInstanceForVnode 创建一个 Vue 的实例，
