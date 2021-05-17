@@ -322,6 +322,7 @@ export function updateChildComponent (
 //   这里我们重点关注一下 slot 部分，由于 <keep-alive> 组件本质上支持了 slot，所以它执行 prepatch 的时候，
   if (hasChildren) {
 //     需要对自己的 children，也就是这些 slots 做重新解析，
+//     子组件的 init 时机是在父组件执行 patch 过程的时候，那这个时候父组件已经编译完成了。并且子组件在 init 过程中会执行 initRender 函数，initRender 的时候获取到 vm.$slot，
     vm.$slots = resolveSlots(renderChildren, parentVnode.context)
 //     并触发 <keep-alive> 组件实例 $forceUpdate 逻辑
 //      ，也就是重新执行 <keep-alive> 的 render 方法，这个时候如果它包裹的第一个组件 vnode 命中缓存，
