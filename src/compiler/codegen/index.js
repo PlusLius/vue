@@ -23,6 +23,7 @@ export class CodegenState {
     this.options = options
     this.warn = options.warn || baseWarn
     this.transforms = pluckModuleFunction(options.modules, 'transformCode')
+//     实际上就是获取所有 modules 中的 genData 函数，其中，class module 和 style module 定义了 genData 函数
     this.dataGenFns = pluckModuleFunction(options.modules, 'genData')
     this.directives = extend(extend({}, baseDirectives), options.directives) // 这个指令方法实际上是在实例化 CodegenState 的时候通过 option 传入的，这个 option 就是编译相关的配置，它在不同的平台下配置不同，
     const isReservedTag = options.isReservedTag || no
@@ -420,7 +421,18 @@ function genForScopedSlot (
       `return ${genScopedSlot(key, el, state)}` +
     '})'
 }
-
+// 在我们的例子中，li AST 元素节点是 ul AST 元素节点的 children 之一，
+// 满足 (children.length === 1 && el.for && el.tag !== 'template' && el.tag !== 'slot') 条件，
+// 因此通过 genElement(el, state) 生成 li AST元素节点的代码，也就回到了我们之前调用 genFor 生成的代码
+// return (isShow) ?
+//     _c('ul', {
+//         staticClass: "list",
+//         class: bindCls
+//       },
+//       _l((data), function(item, index) {
+//         return genElememt(el, state)
+//       })
+//     ) : _e()
 export function genChildren (
   el: ASTElement,
   state: CodegenState,
