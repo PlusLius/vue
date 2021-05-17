@@ -71,6 +71,49 @@ export default function model (
   return true
 }
 
+//_c(
+//    'input',
+//    {
+//        directives:[
+//        {
+//            name:\"model\",
+//            rawName:\"v-model\",
+//            value:(toggle),
+//            expression:\"toggle\"
+//        }
+//        ],
+//        attrs:{
+//            \"type\":\"checkbox\"
+//        },
+//        domProps:{
+//            \"checked\":
+//            Array.isArray(toggle)
+//            ?_i(toggle,null)>-1
+//            :(toggle)
+//        },
+//        on:{
+//            \"change\":function($event){
+//                var $$a=toggle,
+//                $$el=$event.target,
+//                $$c=$$el.checked
+//                ?(true):
+//                (false);
+//                if(Array.isArray($$a)){
+//                    var $$v=null,
+//                   $$i=_i($$a,$$v);
+//                    if($$el.checked){
+//                        $$i<0&&(toggle=$$a.concat([$$v]))
+//                    }else{
+//                        $$i>-1&&(
+//                            toggle=$$a.slice(0,$$i).concat($$a.slice($$i+1)))
+//                    }
+//                }else{
+//                    toggle=$$c
+//                }
+//            }
+//        }
+//    }
+//)"
 function genCheckboxModel (
   el: ASTElement,
   value: string,
