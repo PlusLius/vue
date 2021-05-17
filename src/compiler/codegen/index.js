@@ -502,7 +502,7 @@ function genNode (node: ASTNode, state: CodegenState): string {
     return genText(node)
   }
 }
-
+// [_v(_s(item) + ":" + _s(index))]
 export function genText (text: ASTText | ASTExpression): string {
   return `_v(${text.type === 2
     ? text.expression // no need for () because already wrapped in _s()
