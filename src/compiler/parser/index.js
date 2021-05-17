@@ -452,6 +452,11 @@ function processOnce (el) {
 }
 
 function processSlot (el) {
+  // 处理普通插槽
+//   <app-layout>
+//      <h1 slot="header">{{title}}</h1>
+//   </app-layout>
+// 子组件： <slot name="header"></slot>
   if (el.tag === 'slot') {
     el.slotName = getBindingAttr(el, 'name')
     if (process.env.NODE_ENV !== 'production' && el.key) {
@@ -462,6 +467,11 @@ function processSlot (el) {
       )
     }
   } else {
+    // 处理作用域插槽，就是在父组件写子组件的模版
+    // 子：<slot text="Hello " :msg="msg"></slot> 将属性写slot上
+    // 父：<template slot-scope="props"> 父组件通过slot-scope接收子组件传递的数据
+    // <p>{{ props.text + props.msg}}</p>
+    //</template>
     let slotScope
     if (el.tag === 'template') {
       slotScope = getAndRemoveAttr(el, 'scope')
