@@ -38,7 +38,7 @@ export function genComponentModel (
 /**
  * Cross-platform codegen helper for generating v-model value assignment code.
  */
-
+// 在运行时解析v-model的时候调用，运行时添加字符拼接的工作，解析还是放在Compiler/directive
 export function genAssignmentCode (
   value: string,
   assignment: string
