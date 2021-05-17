@@ -6,7 +6,12 @@ import {
   isReservedTag,
   getTagNamespace
 } from '../util/index'
-
+// export default [
+//   klass,
+//   style,
+//   model
+// ]
+// 运行时环境的style,class
 import modules from './modules/index'
 // export default {
 //   model,
