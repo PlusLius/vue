@@ -46,6 +46,7 @@ export function genAssignmentCode (
   //该方法首先对 v-model 对应的 value 做了解析，它处理了非常多的情况，
   //对我们的例子，value 就是 messgae，所以返回的 res.key 为 null，
   const res = parseModel(value)
+  // 发现key是null简单的做个赋值的拼接工作
   if (res.key === null) {
 //     然后我们就得到 ${value}=${assignment}，也就是 message=$event.target.value。
     return `${value}=${assignment}`
@@ -75,7 +76,7 @@ type ModelParseResult = {
   exp: string,
   key: string | null
 }
-
+// {exp:xxx,key:xxx} 组装val结构
 export function parseModel (val: string): ModelParseResult {
   // Fix https://github.com/vuejs/vue/pull/7730
   // allow v-model="obj.val " (trailing whitespace)
