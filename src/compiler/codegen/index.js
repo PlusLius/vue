@@ -260,6 +260,7 @@ export function genData (el: ASTElement, state: CodegenState): string {
   }
   // slot target
   // only for non-scoped slots
+  // 拼接slot:header这样
   if (el.slotTarget && !el.slotScope) {
     data += `slot:${el.slotTarget},`
   }
