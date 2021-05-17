@@ -75,6 +75,9 @@ export function renderSlot (
   // 拿到对应插槽函数的节点，
     nodes = scopedSlotFn(props) || fallback
   } else {
+//     这样我们就拿到了 vm.$slots 了，回到 renderSlot 函数，const slotNodes = this.$slots[name]，
+//     我们也就能根据插槽名称获取到对应的 vnode 数组了，这个数组里的 vnode 都是在父组件创建的，这样就实现了在父组件替换子组件插槽的内容了。
+//     对应的 slot 渲染成 vnodes，作为当前组件渲染 vnode 的 children，之后的渲染过程之前分析过，不再赘述。
     const slotNodes = this.$slots[name]
     // warn duplicate slot usage
     if (slotNodes) {
