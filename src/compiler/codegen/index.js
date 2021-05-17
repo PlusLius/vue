@@ -42,9 +42,10 @@ export function generate (
   options: CompilerOptions
 ): CodegenResult {
   const state = new CodegenState(options)
+// generate 函数首先通过 genElement(ast, state) 生成 code
   const code = ast ? genElement(ast, state) : '_c("div")'
   return {
-    render: `with(this){return ${code}}`,
+    render: `with(this){return ${code}}`, // ，再把 code 用 with(this){return ${code}}} 包裹起来。这里的 state 是 CodegenState 的一个实例，
     staticRenderFns: state.staticRenderFns
   }
 }
@@ -55,8 +56,10 @@ export function genElement (el: ASTElement, state: CodegenState): string {
   } else if (el.once && !el.onceProcessed) {
     return genOnce(el, state)
   } else if (el.for && !el.forProcessed) {
+// 生成v-for代码
     return genFor(el, state)
   } else if (el.if && !el.ifProcessed) {
+// 生成v-if代码
     return genIf(el, state)
   } else if (el.tag === 'template' && !el.slotTarget) {
     return genChildren(el, state) || 'void 0'
@@ -64,6 +67,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
     return genSlot(el, state)
   } else {
     // component or element
+    // 它最终调用了 genElement(el, state) 去生成子节点，注意，这里的 el 仍然指向的是 ul 对应的 AST 节点，但是此时的 el.ifProcessed 为 true，所以命中最后一个 else 逻辑：
     let code
     if (el.component) {
       code = genComponent(el.component, el, state)
@@ -131,6 +135,10 @@ export function genIf (
   altEmpty?: string
 ): string {
   el.ifProcessed = true // avoid recursion
+  // genIf 主要是通过执行 genIfConditions，它是依次从 conditions 获取第一个 condition，
+  // 然后通过对 condition.exp 去生成一段三元运算符的代码，: 
+  // 后是递归调用 genIfConditions，这样如果有多个 conditions，
+  // 就生成多层三元运算逻辑。这里我们暂时不考虑 v-once 的情况，所以 genTernaryExp 最终是调用了 genElement。
   return genIfConditions(el.ifConditions.slice(), state, altGen, altEmpty)
 }
 
@@ -156,6 +164,7 @@ function genIfConditions (
   }
 
   // v-if with v-once should generate code like (a)?_m(0):_m(1)
+//     return (isShow) ? genElement(el, state) : _e()
   function genTernaryExp (el) {
     return altGen
       ? altGen(el, state)
@@ -164,7 +173,10 @@ function genIfConditions (
         : genElement(el, state)
   }
 }
-
+// genFor 的逻辑很简单，首先 AST 元素节点中获取了和 for 相关的一些属性，然后返回了一个代码字符串。
+// _l((data), function(item, index) {
+//   return genElememt(el, state)
+// })
 export function genFor (
   el: any,
   state: CodegenState,
@@ -197,6 +209,7 @@ export function genFor (
     '})'
 }
 // 然后在 codegen 的阶段，会在 genData 函数中根据 AST 元素节点上的 events 和 nativeEvents 生成 data 数据
+// genData 函数就是根据 AST 元素节点的属性构造出一个 data 对象字符串，这个在后面创建 VNode 的时候的时候会作为参数传入。
 export function genData (el: ASTElement, state: CodegenState): string {
   let data = '{'
 
