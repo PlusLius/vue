@@ -8,6 +8,37 @@
 //   expression:'"message"',
 //   value:'(message)'
 // }
+// "_c(
+//     'base-checkbox',
+//         {
+//           model:
+//             {
+//                 value:(lovingVue),
+//                 callback:function ($$v) {
+//                     // $on调用这个回调将$emit发送的值传过来
+//                     lovingVue=$$v
+//                 },
+//                 expression:\"lovingVue\"
+//             }
+//         }
+// )"
+// "_c(
+//     'input',
+//     {
+//         attrs:{
+//             \"type\":\"checkbox\"
+//         },
+//         domProps:{
+//             \"checked\":checked
+//         },
+//         on:{
+//             \"change\":function($event){
+//                 // 调用$emit发送一个change事件，将选中的值发送给v-model的组件
+//                 return $emit('change', $event.target.checked)
+//             }
+//         }
+//     }
+// )"
 export function genComponentModel (
   el: ASTElement,
   value: string,
