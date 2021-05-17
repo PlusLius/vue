@@ -15,7 +15,7 @@ export function pluckModuleFunction<F: Function> (
     ? modules.map(m => m[key]).filter(_ => _)
     : []
 }
-
+// 给el添加props,ast上的el
 export function addProp (el: ASTElement, name: string, value: string) {
   (el.props || (el.props = [])).push({ name, value })
   el.plain = false
