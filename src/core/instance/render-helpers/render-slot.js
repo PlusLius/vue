@@ -59,7 +59,7 @@ export function renderSlot (
 //   如果 this.$slot[name] 有值，就返回它对应的 vnode 数组，
 //   否则返回 fallback。那么这个 this.$slot 是哪里来的呢？我们知道子组件的 init 时机是在父组件执行 patch 过程的时候，
 //   那这个时候父组件已经编译完成了。并且子组件在 init 过程中会执行 initRender 函数，initRender 的时候获取到 vm.$slot
-  const scopedSlotFn = this.$scopedSlots[name]
+  const scopedSlotFn = this.$scopedSlots[name] 
   let nodes
   if (scopedSlotFn) { // scoped slot
     props = props || {}
@@ -78,7 +78,7 @@ export function renderSlot (
 //     这样我们就拿到了 vm.$slots 了，回到 renderSlot 函数，const slotNodes = this.$slots[name]，
 //     我们也就能根据插槽名称获取到对应的 vnode 数组了，这个数组里的 vnode 都是在父组件创建的，这样就实现了在父组件替换子组件插槽的内容了。
 //     对应的 slot 渲染成 vnodes，作为当前组件渲染 vnode 的 children，之后的渲染过程之前分析过，不再赘述。
-    const slotNodes = this.$slots[name]
+    const slotNodes = this.$slots[name] // 拿到要插入的元素
     // warn duplicate slot usage
     if (slotNodes) {
       if (process.env.NODE_ENV !== 'production' && slotNodes._rendered) {
@@ -90,6 +90,7 @@ export function renderSlot (
       }
       slotNodes._rendered = true
     }
+    // 将要插入的父元素给nodes
     nodes = slotNodes || fallback
   }
 
