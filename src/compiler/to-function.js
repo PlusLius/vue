@@ -7,7 +7,7 @@ type CompiledFunctionResult = {
   render: Function;
   staticRenderFns: Array<Function>;
 };
-
+// 将render方法转化new Function函数
 function createFunction (code, errors) {
   try {
     return new Function(code)
