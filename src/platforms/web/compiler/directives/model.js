@@ -184,7 +184,36 @@ function genRadioModel (
   addProp(el, 'checked', `_q(${value},${valueBinding})`)
   addHandler(el, 'change', genAssignmentCode(value, valueBinding), null, true)
 }
-
+// "_c(
+//     'select',{
+//         directives:[
+//             {
+//                 name:"model",
+//                 rawName:"v-model",
+//                 value:(selected)
+//                 expression:"selected"
+//             }
+//         ],
+//         on:{
+//             "change":function($event){
+//                 var $$selectedVal = Array.prototype.filter.call(
+//                     $event.target.options,
+//                     function(o){
+//                         // 拿到selected选中的
+//                         return o.selected
+//                     }).map(function(o){
+//                         var val = "_value" in o 
+//                         ? o._value 
+//                         : o.value;
+//                         return val
+//                     }); // 返回选中的结果
+                
+//                     selected=$event.target.multiple // 如果是选中多个
+//                     ? $$selectedVal // 返回整个数组给v-model绑定的值
+//                     : $$selectedVal[0] // 否则返回第一个给v-model绑定的值
+//             }
+//         }
+//     },"
 function genSelect (
   el: ASTElement,
   value: string,
