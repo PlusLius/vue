@@ -147,7 +147,32 @@ function genCheckboxModel (
     null, true
   )
 }
-
+// "_c(
+//     'input',
+//     {
+//         directives:[
+//             {
+//                 name:\"model\",
+//                 rawName:\"v-model\",
+//                 value:(picked),
+//                 expression:\"picked\"
+//             }
+//         ],
+//         attrs:{
+//             \"type\":\"radio\",
+//             \"id\":\"one\",
+//             \"value\":\"One\"
+//         },
+//         domProps:{
+//             \"checked\":_q(picked,\"One\")
+//         },
+//         on:{
+//             \"change\":function($event){
+//                 // 把ratio的值给v-model绑定的picked
+//                 picked=\"One\"
+//             }
+//         }
+// })"
 function genRadioModel (
   el: ASTElement,
   value: string,
