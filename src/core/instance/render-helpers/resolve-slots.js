@@ -8,6 +8,7 @@ import type VNode from 'core/vdom/vnode'
 // resolveSlots 方法接收 2 个参数，第一个参数 chilren 对应的是父 vnode 的 children，
 // 在我们的例子中就是 <app-layout> 和 </app-layout> 包裹的内容。
 // 第二个参数 context 是父 vnode 的上下文，也就是父组件的 vm 实例。
+// 建立一个slot name 映射到对应 vnode的一个表
 export function resolveSlots (
   children: ?Array<VNode>,
   context: ?Component
@@ -23,6 +24,7 @@ export function resolveSlots (
     const data = child.data
     // remove slot attribute if the node is resolved as a Vue slot node
     if (data && data.attrs && data.attrs.slot) {
+      // 删除掉子元素上的slot
       delete data.attrs.slot
     }
     // named slots should only be respected if the vnode was rendered in the
@@ -32,15 +34,16 @@ export function resolveSlots (
     ) {
 //        ，然后通过 data.slot 获取到插槽名称， 这个 slot 就是我们之前编译父组件在 codegen 阶段设置的 data.slot。
       const name = data.slot
-//        接着以插槽名称为 key 把 child 添加到 slots 中，
+//        接着以插槽名称为 key 把 child 添加到 slots 中， slots[header] = []
       const slot = (slots[name] || (slots[name] = []))
-//       如果 data.slot 不存在，则是默认插槽的内容，则把对应的 child 添加到 slots.defaults 中。
       if (child.tag === 'template') {
         slot.push.apply(slot, child.children || [])
       } else {
+        // slots[header] = [vnode]
         slot.push(child)
       }
     } else {
+      //       如果 data.slot 不存在，则是默认插槽的内容，则把对应的 child 添加到 slots.defaults 中。
       (slots.default || (slots.default = [])).push(child)
     }
   }
@@ -51,6 +54,10 @@ export function resolveSlots (
     }
   }
 //   这样就获取到整个 slots，它是一个对象，key 是插槽名称，value 是一个 vnode 类型的数组，因为它可以有多个同名插槽。
+//   {header: Array(1), default: Array(1), footer: Array(1)}
+// default: [VNode]
+// footer: [VNode]
+// header: [VNode]
   return slots
 }
 
