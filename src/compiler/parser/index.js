@@ -458,6 +458,7 @@ function processSlot (el) {
 //   </app-layout>
 // 子组件： <slot name="header"></slot>
   if (el.tag === 'slot') {
+//     当遇到 slot 标签的时候会给对应的 AST 元素节点添加 slotName 属性
     el.slotName = getBindingAttr(el, 'name')
     if (process.env.NODE_ENV !== 'production' && el.key) {
       warn(
