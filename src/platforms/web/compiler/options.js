@@ -8,7 +8,13 @@ import {
 } from '../util/index'
 
 import modules from './modules/index'
-import directives from './directives/index'
+// export default {
+//   model,
+//   text,
+//   html
+// }
+// 运行时环境内置的model,text,html
+import directives from './directives/index' 
 import { genStaticKeys } from 'shared/util'
 import { isUnaryTag, canBeLeftOpenTag } from './util'
 
