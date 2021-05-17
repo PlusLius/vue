@@ -73,9 +73,9 @@ export function genElement (el: ASTElement, state: CodegenState): string {
     if (el.component) {
       code = genComponent(el.component, el, state)
     } else {
-      const data = el.plain ? undefined : genData(el, state)
+      const data = el.plain ? undefined : genData(el, state) // el.plain为false，调用genData{attr,directivese}这些代码的生成,el.plain为false表示有data代码需要生成
 
-      const children = el.inlineTemplate ? null : genChildren(el, state, true)
+      const children = el.inlineTemplate ? null : genChildren(el, state, true) // 生成child的代码
       code = `_c('${el.tag}'${
         data ? `,${data}` : '' // data
       }${
@@ -216,6 +216,7 @@ export function genData (el: ASTElement, state: CodegenState): string {
 
   // directives first.
   // directives may mutate the el's other properties before they are generated.
+  // data里面首先先生成指令代码
   const dirs = genDirectives(el, state)
   if (dirs) data += dirs + ','
 
@@ -339,6 +340,7 @@ function genDirectives (el: ASTElement, state: CodegenState): string | void {
 //   然后获取每一个指令对应的方法 const gen: DirectiveFunction = state.directives[dir.name]，
 //   这个指令方法实际上是在实例化 CodegenState 的时候通过 option 传入的，这个 option 就是编译相关的配置，它在不同的平台下配置不同，
     const gen: DirectiveFunction = state.directives[dir.name]
+  // 如果平台生成指令代码存在
     if (gen) {
       // compile-time directive that manipulates AST.
       // returns true if it also needs a runtime counterpart.
@@ -356,6 +358,7 @@ function genDirectives (el: ASTElement, state: CodegenState): string | void {
     }
   }
   if (hasRuntime) {
+    // 将指令拼接好返回
     return res.slice(0, -1) + ']'
   }
 }
@@ -455,7 +458,7 @@ export function genChildren (
     const normalizationType = checkSkip
       ? getNormalizationType(children, state.maybeComponent)
       : 0
-    const gen = altGenNode || genNode
+    const gen = altGenNode || genNode // 调用genNode生成child,gennode会判断child类型，调用genElement,genComment,genText
     return `[${children.map(c => gen(c, state)).join(',')}]${
       normalizationType ? `,${normalizationType}` : ''
     }`
@@ -492,7 +495,7 @@ function getNormalizationType (
 function needsNormalization (el: ASTElement): boolean {
   return el.for !== undefined || el.tag === 'template' || el.tag === 'slot'
 }
-
+// 判断child类型，genElement,genComment,genText生成代码
 function genNode (node: ASTNode, state: CodegenState): string {
   if (node.type === 1) {
     return genElement(node, state)
