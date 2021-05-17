@@ -65,6 +65,7 @@ export function genElement (el: ASTElement, state: CodegenState): string {
   } else if (el.tag === 'template' && !el.slotTarget) {
     return genChildren(el, state) || 'void 0'
   } else if (el.tag === 'slot') {
+// 然后在 codegen 阶段，会判断如果当前 AST 元素节点是 slot 标签，则执行 genSlot 函数
     return genSlot(el, state)
   } else {
     // component or element
@@ -519,8 +520,11 @@ export function genComment (comment: ASTText): string {
   return `_e(${JSON.stringify(comment.text)})`
 }
 
+// 然后在 codegen 阶段，会判断如果当前 AST 元素节点是 slot 标签，则执行 genSlot 函数
 function genSlot (el: ASTElement, state: CodegenState): string {
+//   这里的 slotName 从 AST 元素节点对应的属性上取，默认是 default
   const slotName = el.slotName || '"default"'
+//   ，而 children 对应的就是 slot 开始和闭合标签包裹的内容
   const children = genChildren(el, state)
   let res = `_t(${slotName}${children ? `,${children}` : ''}`
   const attrs = el.attrs && `{${el.attrs.map(a => `${camelize(a.name)}:${a.value}`).join(',')}}`
