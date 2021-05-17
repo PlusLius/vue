@@ -498,12 +498,15 @@ function processSlot (el) {
       }
       el.slotScope = slotScope
     }
+//     当解析到标签上有 slot 属性的时候，会给对应的 AST 元素节点添加 slotTarget 属性，然后在 codegen 阶段，在 genData 中会处理 slotTarget
+    // 这个拿到父组件标签上 slot = 'xxx' 上的 xxx
     const slotTarget = getBindingAttr(el, 'slot')
     if (slotTarget) {
       el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget
       // preserve slot as an attribute for native shadow DOM compat
       // only for non-scoped slots.
       if (el.tag !== 'template' && !el.slotScope) {
+        // 往该ast元素的attr上添加slot属性
         addAttr(el, 'slot', slotTarget)
       }
     }
