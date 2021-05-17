@@ -50,6 +50,13 @@ const modifierCode: { [key: string]: string } = {
 }
 // 对于这两个属性，会调用 genHandlers 函数
 // genHandlers 方法遍历事件对象 events，对同一个事件名称的事件调用 genHandler(name, events[name]) 方法，
+// {
+//   on: {
+//     "click": function($event) {
+//       clickItem(index)
+//     }
+//   }
+// }
 export function genHandlers (
   events: ASTElementHandlers,
   isNative: boolean,
