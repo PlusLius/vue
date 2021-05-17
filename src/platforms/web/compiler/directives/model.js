@@ -71,49 +71,52 @@ export default function model (
   return true
 }
 
-//_c(
-//    'input',
-//    {
-//        directives:[
-//        {
-//            name:\"model\",
-//            rawName:\"v-model\",
-//            value:(toggle),
-//            expression:\"toggle\"
-//        }
-//        ],
-//        attrs:{
-//            \"type\":\"checkbox\"
-//        },
-//        domProps:{
-//            \"checked\":
-//            Array.isArray(toggle)
-//            ?_i(toggle,null)>-1
-//            :(toggle)
-//        },
-//        on:{
-//            \"change\":function($event){
-//                var $$a=toggle,
-//                $$el=$event.target,
-//                $$c=$$el.checked
-//                ?(true):
-//                (false);
-//                if(Array.isArray($$a)){
-//                    var $$v=null,
-//                   $$i=_i($$a,$$v);
-//                    if($$el.checked){
-//                        $$i<0&&(toggle=$$a.concat([$$v]))
-//                    }else{
-//                        $$i>-1&&(
-//                            toggle=$$a.slice(0,$$i).concat($$a.slice($$i+1)))
-//                    }
-//                }else{
-//                    toggle=$$c
-//                }
-//            }
-//        }
-//    }
-//)"
+// _c(
+//     'input',{
+//         directives:[
+//             {
+//                 name:\"model\",
+//                 rawName:\"v-model\",
+//                 value:(checkedNames),
+//                 expression:\"checkedNames\"
+//             }
+//         ],
+//         attrs:{
+//             \"type\":\"checkbox\",
+//             \"id\":\"jack\",
+//             \"value\":\"Jack\"
+//         },
+//         domProps:{
+//             \"checked\":Array.isArray(checkedNames)
+//             ?_i(checkedNames,\"Jack\")>-1
+//             :(checkedNames)
+//         },
+//         on:{
+//             \"change\":function($event){
+//                 var $$a=checkedNames,
+//                 $$el=$event.target,
+//                 $$c=$$el.checked?(true):(false);
+//                 if(Array.isArray($$a)){
+//                     // 是数组的情况拿到value值
+//                     var $$v=\"Jack\",
+//                     // 查找当前数组中value值的位置
+//                     $$i=_i($$a,$$v);
+//                     // 选中的情况
+//                     if($$el.checked){
+//                         // 选中后没有找到这个值那么就把他合并到v-model绑定的值
+//                         $$i<0&&(checkedNames=$$a.concat([$$v]))
+//                     }else{
+//                         // 没选中的情况，就将该值从v-model绑定的数组中删除
+//                         $$i>-1&&(checkedNames=$$a.slice(0,$$i).concat($$a.slice($$i+1)))
+//                     }
+//                 }else{
+//                     // 不是数组拿到勾选的值给v-model绑定的值
+//                     checkedNames=$$c
+//                 }
+//             }
+//         }
+//     }
+// )"
 function genCheckboxModel (
   el: ASTElement,
   value: string,
