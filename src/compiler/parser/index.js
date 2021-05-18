@@ -210,6 +210,7 @@ export function parse (
 
           // 然后在 genData 的过程，会对 scopedSlots 做处理
           currentParent.plain = false
+//           scopedSlots: {"default": {…}}
           const name = element.slotTarget || '"default"'
           ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element
         } else {
