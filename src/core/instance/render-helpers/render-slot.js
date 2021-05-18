@@ -72,6 +72,7 @@ export function renderSlot (
       }
       props = extend(extend({}, bindObject), props)
     }
+// 作用域插槽，父组件在编译和渲染阶段并不会直接生成 vnodes，而是在父节点 vnode 的 data 中保留一个 scopedSlots 对象，存储着不同名称的插槽以及它们对应的渲染函数，只有在编译和渲染子组件阶段才会执行这个渲染函数生成 vnodes，由于是在子组件环境执行的，所以对应的数据作用域是子组件实例。
   // 拿到对应插槽函数的节点，
     nodes = scopedSlotFn(props) || fallback
   } else {
@@ -90,6 +91,7 @@ export function renderSlot (
       }
       slotNodes._rendered = true
     }
+//     普通插槽是在父组件编译和渲染阶段生成 vnodes，所以数据的作用域是父组件实例，子组件渲染的时候直接拿到这些渲染好的 vnodes
     // 将要插入的父元素给nodes
     nodes = slotNodes || fallback
   }
