@@ -64,7 +64,9 @@ export function resolveSlots (
 function isWhitespace (node: VNode): boolean {
   return (node.isComment && !node.asyncFactory) || node.text === ' '
 }
-
+// 其中，fns 是一个数组，每一个数组元素都有一个 key 和一个 fn，
+// key 对应的是插槽的名称，fn 对应一个函数。整个逻辑就是遍历这个 fns 数组，生成一个对象，
+// 对象的 key 就是插槽名称，value 就是函数
 export function resolveScopedSlots (
   fns: ScopedSlotsData, // see flow/vnode
   res?: Object
