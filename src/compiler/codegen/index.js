@@ -550,6 +550,14 @@ function genSlot (el: ASTElement, state: CodegenState): string {
 //   ，而 children 对应的就是 slot 开始和闭合标签包裹的内容
   const children = genChildren(el, state)
   let res = `_t(${slotName}${children ? `,${children}` : ''}`
+//   with(this){
+//   return _c('div',
+//     {staticClass:"child"},
+//     [_t("default",null,
+//       {text:"Hello ",msg:msg}
+//     )],
+//   2)}
+//   它会对 attrs 和 v-bind 做处理，
   const attrs = el.attrs && `{${el.attrs.map(a => `${camelize(a.name)}:${a.value}`).join(',')}}`
   const bind = el.attrsMap['v-bind']
   if ((attrs || bind) && !children) {
