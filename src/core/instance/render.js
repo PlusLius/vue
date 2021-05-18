@@ -78,7 +78,14 @@ export function renderMixin (Vue: Class<Component>) {
       // 这个 _parentVNode.data.scopedSlots 对应的就是我们在父组件通过执行 resolveScopedSlots 返回的对象。
       // 所以回到 genSlot 函数，我们就可以通过插槽的名称拿到对应的 scopedSlotFn，然后把相关的数据扩展到 props 上，
       // 作为函数的参数传入，原来之前我们提到的函数这个时候执行，然后返回生成的 vnodes，为后续渲染节点用。
+//       {$stable: true, $key: undefined, $hasNormal: false, default: ƒ}
+//       default: ƒ ()
+//       $hasNormal: false
+//       $key: undefined
+//       $stable: true
+//       __proto__: Object
       vm.$scopedSlots = _parentVnode.data.scopedSlots || emptyObject
+      
     }
 
     // set parent vnode. this allows render functions to have access
