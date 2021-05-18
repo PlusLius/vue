@@ -268,6 +268,9 @@ export function genData (el: ASTElement, state: CodegenState): string {
   }
   // scoped slots
   if (el.scopedSlots) {
+//    可以看到对于拥有 scopedSlot 属性的 AST 元素节点而言，是不会作为 children 添加到当前 AST 树中，而是存到父 AST 元素节点的 scopedSlots 属性上，它是一个对象，以插槽名称 name 为 key。
+
+// 然后在 genData 的过程，会对 scopedSlots 做处理
     data += `${genScopedSlots(el.scopedSlots, state)},`
   }
   // component v-model
@@ -383,10 +386,29 @@ function genInlineTemplate (el: ASTElement, state: CodegenState): ?string {
   }
 }
 
+// with(this){
+//   return _c('div',
+//     [_c('child',
+//       {scopedSlots:_u([
+//         {
+//           key: "default",
+//           fn: function(props) {
+//             return [
+//               _c('p',[_v("Hello from parent")]),
+//               _c('p',[_v(_s(props.text + props.msg))])
+//             ]
+//           }
+//         }])
+//       }
+//     )],
+//   1)
+// }
 function genScopedSlots (
   slots: { [key: string]: ASTElement },
   state: CodegenState
 ): string {
+//     genScopedSlots 就是对 scopedSlots 对象遍历，执行 genScopedSlot，并把结果用逗号拼接，而 genScopedSlot 是先生成一段函数代码
+    //     并把结果用逗号拼接，而 genScopedSlot 是先生成一段函数代码，并且函数的参数就是我们的 slotScope，
   return `scopedSlots:_u([${
     Object.keys(slots).map(key => {
       return genScopedSlot(key, slots[key], state)
@@ -402,6 +424,7 @@ function genScopedSlot (
   if (el.for && !el.forProcessed) {
     return genForScopedSlot(key, el, state)
   }
+//     也就是写在标签属性上的 scoped-slot 对应的值，然后再返回一个对象，key 为插槽名称，fn 为生成的函数代码。
   const fn = `function(${String(el.slotScope)}){` +
     `return ${el.tag === 'template'
       ? el.if
