@@ -59,7 +59,7 @@ export function renderSlot (
 //   如果 this.$slot[name] 有值，就返回它对应的 vnode 数组，
 //   否则返回 fallback。那么这个 this.$slot 是哪里来的呢？我们知道子组件的 init 时机是在父组件执行 patch 过程的时候，
 //   那这个时候父组件已经编译完成了。并且子组件在 init 过程中会执行 initRender 函数，initRender 的时候获取到 vm.$slot
-  const scopedSlotFn = this.$scopedSlots[name] 
+  const scopedSlotFn = this.$scopedSlots[name] // ，那么这个 this.$scopedSlots 又是在什么地方定义的呢，原来在子组件的渲染函数执行前，在 vm_render 方法内，有这么一段逻辑，
   let nodes
   if (scopedSlotFn) { // scoped slot
     props = props || {}
