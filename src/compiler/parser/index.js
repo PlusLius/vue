@@ -520,12 +520,14 @@ function processSlot (el) {
     }
   }
 }
-
+// 处理动态组件
 function processComponent (el) {
   let binding
+  // 动态组件分为2部分拿到is后面的值
   if ((binding = getBindingAttr(el, 'is'))) {
     el.component = binding
   }
+  // 另一部分是行内模版
   if (getAndRemoveAttr(el, 'inline-template') != null) {
     el.inlineTemplate = true
   }
