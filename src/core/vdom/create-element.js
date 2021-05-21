@@ -50,7 +50,7 @@ const ALWAYS_NORMALIZE = 2
 //   }
 export function createElement (
   context: Component, // vm 内置填进去的
-  tag: any, //  tag
+  tag: any, //  tag 传入的是字符串，动态变量在with(this)的情况下会拿取到该值对应的字符串组件
   data: any, // options.data
   children: any, // [vnode] or text
   normalizationType: any, // 组件类型是1 不是组件类型是 0
@@ -108,7 +108,6 @@ export function _createElement (
     return createEmptyVNode()
   }
   // object syntax in v-bind
-  // 动态组件
   if (isDef(data) && isDef(data.is)) {
     // 拿到动态组件上绑定的is值作为tag
     tag = data.is
