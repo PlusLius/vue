@@ -71,7 +71,9 @@ export function genElement (el: ASTElement, state: CodegenState): string {
     // component or element
     // 它最终调用了 genElement(el, state) 去生成子节点，注意，这里的 el 仍然指向的是 ul 对应的 AST 节点，但是此时的 el.ifProcessed 为 true，所以命中最后一个 else 逻辑：
     let code
+    // el.component存在说明是动态组件
     if (el.component) {
+      // 生成动态组件代码
       code = genComponent(el.component, el, state)
     } else {
       const data = el.plain ? undefined : genData(el, state) // el.plain为false，调用genData{attr,directivese}这些代码的生成,el.plain为false表示有data代码需要生成
@@ -579,6 +581,7 @@ function genComponent (
   state: CodegenState
 ): string {
   const children = el.inlineTemplate ? null : genChildren(el, state, true)
+  // 动态组件组件名传进去
   return `_c(${componentName},${genData(el, state)}${
     children ? `,${children}` : ''
   })`
