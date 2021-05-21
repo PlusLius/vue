@@ -108,7 +108,9 @@ export function _createElement (
     return createEmptyVNode()
   }
   // object syntax in v-bind
+  // 动态组件
   if (isDef(data) && isDef(data.is)) {
+    // 拿到动态组件上绑定的is值作为tag
     tag = data.is
   }
   if (!tag) {
