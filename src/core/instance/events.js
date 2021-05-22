@@ -13,6 +13,7 @@ export function initEvents (vm: Component) {
   vm._events = Object.create(null)
   vm._hasHookEvent = false
   // init parent attached events
+  // 这里拿到了父组件传入的 listeners，然后在执行 initEvents 的过程中，会处理这个 listeners
   const listeners = vm.$options._parentListeners
   if (listeners) {
     updateComponentListeners(vm, listeners)
@@ -39,6 +40,7 @@ export function updateComponentListeners (
   oldListeners: ?Object
 ) {
   target = vm
+//   所以对于自定义事件和原生 DOM 事件处理的差异就在事件添加和删除的实现上，来看一下自定义事件 add 和 remove
   updateListeners(listeners, oldListeners || {}, add, remove, vm)
   target = undefined
 }
