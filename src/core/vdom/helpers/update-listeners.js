@@ -41,7 +41,7 @@ export function createFnInvoker (fns: Function | Array<Function>): Function {
   invoker.fns = fns
   return invoker
 }
-
+// updateListeners 的逻辑很简单，
 export function updateListeners (
   on: Object,
   oldOn: Object,
@@ -50,6 +50,7 @@ export function updateListeners (
   vm: Component
 ) {
   let name, def, cur, old, event
+//   ，遍历 on 去添加事件监听，
   for (name in on) {
     def = cur = on[name]
     old = oldOn[name]
@@ -74,6 +75,7 @@ export function updateListeners (
       on[name] = old
     }
   }
+  // 遍历 oldOn 去移除事件监听 关于监听和移除事件的方法都是外部传入的，因为它既处理原生 DOM 事件的添加删除，也处理自定义事件的添加删除。
   for (name in oldOn) {
     if (isUndef(on[name])) {
       event = normalizeEvent(name)
