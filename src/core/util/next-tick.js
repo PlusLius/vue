@@ -88,6 +88,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
  */
 // withMacroTask 函数，它是对函数做一层包装，确保函数执行过程中对数据任意的修改，
 // 触发变化执行 nextTick 的时候强制走 macroTimerFunc。比如对于一些 DOM 交互事件，如 v-on 绑定的事件回调函数的处理，会强制走 macro task
+// 实际上就是强制在 DOM 事件的回调函数执行期间如果修改了数据，那么这些数据更改推入的队列会被当做 macroTask 在 nextTick 后执行。
 export function withMacroTask (fn: Function): Function {
   return fn._withTask || (fn._withTask = function () {
     useMacroTask = true
