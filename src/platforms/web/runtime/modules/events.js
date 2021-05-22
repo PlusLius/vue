@@ -37,7 +37,7 @@ function createOnceHandler (handler, event, capture) {
     }
   }
 }
-
+// add 和 remove 的逻辑很简单，就是实际上调用原生 addEventListener 和 removeEventListener，并根据参数传递一些配置，注意这里的 hanlder 会用 withMacroTask(hanlder) 包裹一下
 function add (
   event: string,
   handler: Function,
