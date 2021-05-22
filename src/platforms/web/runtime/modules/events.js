@@ -68,19 +68,23 @@ function remove (
     capture
   )
 }
-
+//
 function updateDOMListeners (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   if (isUndef(oldVnode.data.on) && isUndef(vnode.data.on)) {
     return
   }
+//   首先获取 vnode.data.on，这就是我们之前的生成的 data 中对应的事件对象，
   const on = vnode.data.on || {}
   const oldOn = oldVnode.data.on || {}
+//   target 是当前 vnode 对于的 DOM 对象，
   target = vnode.elm
+//    normalizeEvents 主要是对 v-model 相关的处理，我们之后分析 v-model 的时候会介绍，
   normalizeEvents(on)
+//   接着调用 updateListeners(on, oldOn, add, remove, vnode.context) 方法，
   updateListeners(on, oldOn, add, remove, vnode.context)
   target = undefined
 }
-
+// 在 patch 过程中的创建阶段和更新阶段都会执行 updateDOMListeners：
 export default {
   create: updateDOMListeners,
   update: updateDOMListeners
