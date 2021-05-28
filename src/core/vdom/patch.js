@@ -791,25 +791,25 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
 //     这个也就是我们在 index.html 模板中写的 <div id="app">，
 //     vm.$el 的赋值是在之前 mountComponent 函数做的，vnode 对应的是调用 render 函数的返回值，hydrating 在非服务端渲染情况下为 false，removeOnly 为 false。
     
-    if (isUndef(vnode)) { 
-      if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
-      return
+    if (isUndef(vnode)) { // 新的vnode没有，如果老的有，说明新的节点执行了删除操作，这个时候执行老的vnode的销毁操作
+      if (isDef(oldVnode)) invokeDestroyHook(oldVnode) // 执行老的vnode节点的销毁操作
+      return // 新老节点都没定义说明什么也不用做
     }
 //     完成组件的整个 patch 过程后，最后执行 insert(parentElm, vnode.elm, refElm) 完成组件的 DOM 插入，如果组件 patch 过程中又创建了子组件，那么DOM 的插入顺序是先子后父。
     let isInitialPatch = false
     const insertedVnodeQueue = []
 
-    if (isUndef(oldVnode)) {
+    if (isUndef(oldVnode)) { // 如果老的vnode没有，说明是初始化操作，直接创建根元素
       // empty mount (likely as component), create new root element
       isInitialPatch = true
-      createElm(vnode, insertedVnodeQueue)
+      createElm(vnode, insertedVnodeQueue) // 将vnode作为根元素进行创建
     } else {
-      const isRealElement = isDef(oldVnode.nodeType)
+      const isRealElement = isDef(oldVnode.nodeType) // 检查老的vnode是不是一个html元素
 //       这里执行 patch 的逻辑和首次渲染是不一样的，因为 oldVnode 不为空，并且它和 vnode 都是 VNode 类型，
 //       接下来会通过 sameVNode(oldVnode, vnode) 判断它们是否是相同的 VNode 来决定走不同的更新逻辑：
-      if (!isRealElement && sameVnode(oldVnode, vnode)) {
+      if (!isRealElement && sameVnode(oldVnode, vnode)) { // 不是一个html元素，判断vnode是不是同一个vnode,
         // patch existing root node
-        patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly)
+        patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly) // 如果是同一个vnode将新的变化添加到老的树上
       } else {
         if (isRealElement) { // // 由于我们传入的 oldVnode 实际上是一个 DOM container，所以 isRealElement 为 true
           // mounting to a real element
@@ -836,6 +836,7 @@ export function createPatchFunction (backend) { // { nodeOps, modules } 里面�
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
           // 接下来又通过 emptyNodeAt 方法把 oldVnode 转换成 VNode 对象，
+          // 如果是html元素转换成vnode对象
           oldVnode = emptyNodeAt(oldVnode)
         }
 
